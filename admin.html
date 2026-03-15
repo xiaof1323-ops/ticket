@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>管理后台 · 票务担保平台</title>
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+.fa-shield-alt::before{content:"🛡"}.fa-search::before{content:"🔍"}.fa-check-circle::before{content:"✅"}
+.fa-users::before{content:"👥"}.fa-bolt::before{content:"⚡"}.fa-ticket-alt::before{content:"🎫"}
+.fa-shopping-bag::before{content:"🛍"}.fa-user::before{content:"👤"}.fa-plus::before{content:"＋"}
+.fa-times::before{content:"✕"}.fa-sync::before{content:"↻"}.fa-check::before{content:"✓"}
+.fa-trash::before{content:"🗑"}.fa-chevron-down::before{content:"▾"}.fa-clock::before{content:"⏰"}
+.fa-chart-bar::before{content:"📊"}.fa-calendar-alt::before{content:"📅"}.fa-sign-out-alt::before{content:"→"}
+.fa-user-circle::before{content:"👤"}.fa-plus-circle::before{content:"➕"}.fa-list::before{content:"≡"}
+.fa-exclamation-circle::before{content:"⚠"}.fa-university::before{content:"🏦"}.fa-credit-card::before{content:"💳"}
+</style>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0d0d0f;
+  --surface:#16161a;
+  --surface2:#1e1e24;
+  --surface3:#26262e;
+  --border:rgba(255,255,255,0.07);
+  --border-md:rgba(255,255,255,0.13);
+  --text:#f0ede8;
+  --text2:#9e9a94;
+  --text3:#585550;
+  --gold:#d4a847;--gold2:#b8902e;--gold-bg:rgba(212,168,71,0.1);--gold-border:rgba(212,168,71,0.25);
+  --red:#e8304a;--red-bg:rgba(232,48,74,0.1);--red-border:rgba(232,48,74,0.3);
+  --green:#3dba6f;--green-bg:rgba(61,186,111,0.1);--green-border:rgba(61,186,111,0.25);
+  --orange:#f07730;--orange-bg:rgba(240,119,48,0.1);
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:18px;
+  --font:system-ui,'PingFang SC','Microsoft YaHei',sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+}
+body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── LOGIN ── */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--ink)}
+.login-card{background:var(--surface2);border:0.5px solid var(--border-md);border-radius:var(--r-xl);padding:32px 28px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,0.5)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.login-mark{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.login-mark svg{width:18px;height:18px;fill:var(--ink)}
+.login-logo span{font-size:15px;font-weight:700}
+.login-logo em{color:var(--gold);font-style:normal}
+.login-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:24px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--text2);font-weight:600;display:block;margin-bottom:5px}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 12px;border:0.5px solid var(--border-md);border-radius:var(--r-md);font-size:14px;background:var(--surface3);color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s,box-shadow .15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,71,0.1)}
+.form-textarea{resize:vertical;min-height:70px}
+.btn-login{width:100%;padding:12px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);transition:background .15s}
+.btn-login:hover{background:var(--gold2)}
+.login-err{font-size:12px;color:var(--red);margin-top:6px;display:none}
+.login-err.show{display:block}
+
+/* ── ADMIN SHELL ── */
+.admin{display:none}
+.admin.show{display:block}
+.admin-nav{background:var(--surface2);border-bottom:0.5px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.admin-logo{display:flex;align-items:center;gap:9px}
+.admin-logo-mark{width:28px;height:28px;background:var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.admin-logo-mark svg{width:14px;height:14px;fill:var(--ink)}
+.admin-logo-name{font-size:14px;font-weight:700}
+.admin-logo-name em{color:var(--gold);font-style:normal}
+.admin-logo-badge{background:var(--surface3);border:0.5px solid var(--border-md);color:var(--text2);font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;margin-left:6px}
+.admin-nav-right{display:flex;align-items:center;gap:10px}
+.admin-nav-user{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.admin-nav-user i{color:var(--gold)}
+.btn-logout{padding:5px 12px;border:0.5px solid var(--red-border);border-radius:var(--r-sm);background:transparent;font-size:12px;cursor:pointer;font-family:var(--font);color:var(--red);transition:all .15s}
+.btn-logout:hover{background:var(--red-bg)}
+
+/* ── TABS ── */
+.admin-tabs{display:flex;border-bottom:0.5px solid var(--border);padding:0 20px;background:var(--surface);overflow-x:auto;scrollbar-width:none}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab{padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;display:flex;align-items:center;gap:6px;transition:color .15s}
+.admin-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.admin-tab:hover{color:var(--text)}
+.admin-content{padding:20px;max-width:1400px;margin:0 auto}
+.admin-page{display:none}
+.admin-page.active{display:block}
+.badge-count{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.stat-box{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px;position:relative;overflow:hidden}
+.stat-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);opacity:0.4}
+.stat-num{font-size:28px;font-weight:700;color:var(--gold);font-family:var(--mono)}
+.stat-label{font-size:11px;color:var(--text2);margin-top:4px;font-weight:600}
+.stat-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:24px;opacity:0.07}
+
+/* ── DATA CARD ── */
+.data-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px}
+.data-card-header{padding:13px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.data-card-title{font-size:13px;font-weight:700}
+.data-card-actions{display:flex;align-items:center;gap:8px}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+th{padding:9px 12px;text-align:left;font-weight:700;color:var(--text2);background:var(--surface3);border-bottom:0.5px solid var(--border);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:0.3px}
+td{padding:10px 12px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;display:inline-block;white-space:nowrap}
+.pill-pending{background:var(--orange-bg);color:var(--orange)}
+.pill-live{background:var(--green-bg);color:var(--green)}
+.pill-sold{background:var(--surface3);color:var(--text3)}
+.pill-rejected{background:var(--red-bg);color:var(--red)}
+.txid-cell{font-family:var(--mono);font-size:11px;color:var(--text2)}
+
+/* ── ACTION BUTTONS ── */
+.btn-approve{padding:4px 10px;background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border);border-radius:var(--r-sm);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-approve:hover{background:var(--green);color:#fff}
+.btn-reject{padding:4px 10px;background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-border);border-radius:var(--r-sm);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);margin-left:4px;transition:all .15s}
+.btn-reject:hover{background:var(--red);color:#fff}
+.btn-remove{padding:4px 10px;background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-border);border-radius:var(--r-sm);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .15s}
+.btn-remove:hover{background:var(--red);color:#fff}
+.btn-sm{padding:5px 11px;border:0.5px solid var(--border-md);border-radius:var(--r-sm);background:transparent;font-size:12px;cursor:pointer;font-family:var(--font);color:var(--text2);transition:all .15s}
+.btn-sm:hover{background:var(--surface3);color:var(--text)}
+.btn-gold{background:var(--gold);color:var(--ink);border:none;font-weight:700;border-radius:var(--r-md)}
+.btn-gold:hover{background:var(--gold2)}
+.btn-icon{width:28px;height:28px;border-radius:var(--r-sm);border:0.5px solid var(--border-md);background:transparent;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .15s}
+.btn-icon:hover{background:var(--surface3);color:var(--text)}
+.btn-icon.danger:hover{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.empty{padding:40px;text-align:center;color:var(--text3);font-size:13px}
+.empty i{font-size:28px;margin-bottom:10px;display:block}
+
+/* ── SHOWS MANAGEMENT ── */
+.show-form-card{background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:14px}
+.show-form-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.form-group{margin-bottom:10px}
+.form-group:last-child{margin-bottom:0}
+.tags-input-wrap{border:0.5px solid var(--border-md);border-radius:var(--r-md);padding:6px 10px;background:var(--surface3);cursor:text;min-height:42px;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.tags-input-wrap:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,71,0.1)}
+.date-tag{background:var(--gold-bg);border:0.5px solid var(--gold-border);color:var(--gold);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;font-family:var(--mono)}
+.date-tag button{background:none;border:none;cursor:pointer;color:var(--gold);font-size:12px;line-height:1;padding:0;display:flex;align-items:center}
+.tags-input-wrap input{border:none;background:none;outline:none;font-size:13px;color:var(--text);font-family:var(--font);min-width:100px;flex:1}
+.prices-input{width:100%}
+.show-list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:14px}
+.show-list-card{background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:14px;position:relative;transition:border-color .15s}
+.show-list-card:hover{border-color:var(--gold-border)}
+.slc-artist{font-size:11px;color:var(--gold);font-weight:700;margin-bottom:4px}
+.slc-title{font-size:13px;font-weight:700;margin-bottom:4px;line-height:1.4}
+.slc-meta{font-size:11px;color:var(--text2);line-height:1.7}
+.slc-actions{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)}
+.slc-status{position:absolute;top:12px;right:12px}
+.toggle-switch{position:relative;width:36px;height:20px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--surface2);border-radius:10px;transition:.2s;border:0.5px solid var(--border-md)}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:2px;background:var(--text3);border-radius:50%;transition:.2s}
+.toggle-switch input:checked+.toggle-slider{background:var(--green-bg);border-color:var(--green-border)}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(16px);background:var(--green)}
+
+/* ── OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.overlay.show{display:flex}
+.modal{background:var(--surface2);border:0.5px solid var(--border-md);border-radius:var(--r-xl);padding:24px;width:100%;max-width:500px;position:relative;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:18px}
+.modal-close{position:absolute;top:14px;right:16px;background:var(--surface3);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;color:var(--text2);font-size:12px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{color:var(--text)}
+.btn-submit{width:100%;padding:12px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-lg);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);transition:background .15s;margin-top:4px}
+.btn-submit:hover{background:var(--gold2)}
+
+/* ORDER STATUS SELECT */
+.status-sel{padding:4px 7px;border-radius:var(--r-sm);border:0.5px solid var(--border-md);font-size:11px;cursor:pointer;background:var(--surface3);color:var(--text);font-family:var(--font)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-mark"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 12H7v-2h4v2zm0-4H7v-2h4v2zm6 4h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg></div>
+      <span>票务<em>助手</em>交易平台</span>
+    </div>
+    <div class="login-title">管理后台</div>
+    <div class="login-sub">仅限平台管理员访问</div>
+    <div class="form-group">
+      <label class="form-label">管理员账号</label>
+      <input class="form-input" id="admin-account" placeholder="请输入管理员账号" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">密码</label>
+      <input class="form-input" type="password" id="admin-pass" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+    </div>
+    <div class="login-err" id="admin-err"><i class="fa fa-exclamation-circle"></i> 账号或密码错误</div>
+    <button class="btn-login" onclick="doAdminLogin()" style="margin-top:10px">登录后台</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin" id="admin-page">
+  <nav class="admin-nav">
+    <div class="admin-logo">
+      <div class="admin-logo-mark"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 12H7v-2h4v2zm0-4H7v-2h4v2zm6 4h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg></div>
+      <span class="admin-logo-name">票务<em>助手</em></span>
+      <span class="admin-logo-badge">管理后台</span>
+    </div>
+    <div class="admin-nav-right">
+      <span class="admin-nav-user"><i class="fa fa-user-circle"></i><span id="admin-nav-user"></span></span>
+      <button class="btn-logout" onclick="doAdminLogout()"><i class="fa fa-sign-out-alt"></i> 退出</button>
+    </div>
+  </nav>
+  <div class="admin-tabs">
+    <div class="admin-tab active" id="atab-overview" onclick="switchAdminTab('overview')"><i class="fa fa-chart-bar"></i>概览</div>
+    <div class="admin-tab" id="atab-shows" onclick="switchAdminTab('shows')"><i class="fa fa-calendar-alt"></i>演出管理</div>
+    <div class="admin-tab" id="atab-listings" onclick="switchAdminTab('listings')"><i class="fa fa-ticket-alt"></i>上架审核 <span class="badge-count" id="pending-count" style="display:none">0</span></div>
+    <div class="admin-tab" id="atab-orders" onclick="switchAdminTab('orders')"><i class="fa fa-shopping-bag"></i>订单管理</div>
+    <div class="admin-tab" id="atab-users" onclick="switchAdminTab('users')"><i class="fa fa-users"></i>用户管理</div>
+  </div>
+  <div class="admin-content">
+
+    <!-- OVERVIEW -->
+    <div class="admin-page active" id="apage-overview">
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-num" id="s-total-users">-</div><div class="stat-label">总用户数</div><i class="fa fa-users stat-icon"></i></div>
+        <div class="stat-box"><div class="stat-num" id="s-pending">-</div><div class="stat-label">待审核上架</div><i class="fa fa-clock stat-icon"></i></div>
+        <div class="stat-box"><div class="stat-num" id="s-live">-</div><div class="stat-label">上架中</div><i class="fa fa-ticket-alt stat-icon"></i></div>
+        <div class="stat-box"><div class="stat-num" id="s-total-orders">-</div><div class="stat-label">总订单数</div><i class="fa fa-shopping-bag stat-icon"></i></div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title"><i class="fa fa-clock" style="color:var(--orange);margin-right:6px"></i>待审核上架票</div>
+          <button class="btn-sm" onclick="loadAll()"><i class="fa fa-sync"></i> 刷新</button>
+        </div>
+        <div class="table-wrap"><div id="overview-pending"></div></div>
+      </div>
+    </div>
+
+    <!-- SHOWS MANAGEMENT -->
+    <div class="admin-page" id="apage-shows">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title"><i class="fa fa-plus-circle" style="color:var(--gold);margin-right:6px"></i>新增演出场次</div>
+        </div>
+        <div style="padding:16px">
+          <div class="show-form-card">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">艺人名称</label>
+                <input class="form-input" id="ns-artist" placeholder="例：周杰伦"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">演出城市</label>
+                <input class="form-input" id="ns-city" placeholder="例：北京"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">演出全称</label>
+              <input class="form-input" id="ns-title" placeholder="例：嘉年华II世界巡回演唱会 北京站"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">场次简称（前台选项用）</label>
+              <input class="form-input" id="ns-label" placeholder="例：嘉年华II 北京站"/>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">演出类型</label>
+                <select class="form-select" id="ns-type">
+                  <option value="concert">演唱会</option>
+                  <option value="talk">脱口秀</option>
+                  <option value="musical">音乐剧</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">场馆</label>
+                <input class="form-input" id="ns-venue" placeholder="例：国家体育场（鸟巢）"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">演出日期（输入日期回车添加，格式 YYYY-MM-DD）</label>
+              <div class="tags-input-wrap" id="ns-dates-wrap" onclick="document.getElementById('ns-date-input').focus()">
+                <div id="ns-dates-tags"></div>
+                <input id="ns-date-input" placeholder="2026-04-17 回车添加" onkeydown="addDateTag(event)"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">面价列表（逗号分隔，例：480,680,980,1280）</label>
+              <input class="form-input" id="ns-prices" placeholder="480,680,980,1280,1580"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display:flex;align-items:center;gap:6px">
+                <input type="checkbox" id="ns-hot" style="accent-color:var(--gold)"/> 标记为热门（🔥 抢手）
+              </label>
+            </div>
+          </div>
+          <button class="btn-submit" onclick="addShow()" style="max-width:200px">
+            <i class="fa fa-plus" style="margin-right:6px"></i>添加演出场次
+          </button>
+        </div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title"><i class="fa fa-list" style="color:var(--text2);margin-right:6px"></i>已配置演出</div>
+          <button class="btn-sm" onclick="loadShows()"><i class="fa fa-sync"></i> 刷新</button>
+        </div>
+        <div style="padding:14px">
+          <div class="show-list-grid" id="show-list-grid">
+            <div class="empty"><i class="fa fa-spinner fa-spin"></i>加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTINGS -->
+    <div class="admin-page" id="apage-listings">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">所有上架记录</div>
+          <button class="btn-sm" onclick="loadListings()"><i class="fa fa-sync"></i> 刷新</button>
+        </div>
+        <div class="table-wrap"><div id="admin-listings"></div></div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="admin-page" id="apage-orders">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">所有订单</div>
+          <button class="btn-sm" onclick="loadOrders()"><i class="fa fa-sync"></i> 刷新</button>
+        </div>
+        <div class="table-wrap"><div id="admin-orders"></div></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="admin-page" id="apage-users">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">所有用户</div>
+          <button class="btn-sm" onclick="loadUsers()"><i class="fa fa-sync"></i> 刷新</button>
+        </div>
+        <div class="table-wrap"><div id="admin-users"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://zrpibxtfgbqsckmobndl.supabase.co';
+const SB_KEY='sb_publishable_MUD7jY3lIHawonBnnwWEHw_5iSIbCPE';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+const ADMIN_ACCOUNTS=[{account:'admin',pass:'Ticket@2026#Xiao'}];
+let adminUser=null;
+
+// ── LOGIN ──
+function doAdminLogin(){
+  const acc=document.getElementById('admin-account').value.trim();
+  const pass=document.getElementById('admin-pass').value;
+  const found=ADMIN_ACCOUNTS.find(a=>a.account===acc&&a.pass===pass);
+  if(!found){document.getElementById('admin-err').classList.add('show');return}
+  document.getElementById('admin-err').classList.remove('show');
+  adminUser=found;
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('admin-page').classList.add('show');
+  document.getElementById('admin-nav-user').textContent=acc;
+  loadAll();loadShows();
+}
+function doAdminLogout(){
+  adminUser=null;
+  document.getElementById('login-page').style.display='';
+  document.getElementById('admin-page').classList.remove('show');
+  document.getElementById('admin-account').value='';
+  document.getElementById('admin-pass').value='';
+}
+function switchAdminTab(tab){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('atab-'+tab).classList.add('active');
+  document.getElementById('apage-'+tab).classList.add('active');
+  if(tab==='listings')loadListings();
+  if(tab==='orders')loadOrders();
+  if(tab==='users')loadUsers();
+  if(tab==='shows')loadShows();
+}
+
+// ── OVERVIEW ──
+async function loadAll(){
+  const[{data:users},{data:listings},{data:orders}]=await Promise.all([
+    sb.from('users').select('*'),
+    sb.from('listings').select('*').order('created_at',{ascending:false}),
+    sb.from('orders').select('*').order('created_at',{ascending:false})
+  ]);
+  const pending=(listings||[]).filter(l=>l.status==='pending');
+  const live=(listings||[]).filter(l=>l.status==='live');
+  document.getElementById('s-total-users').textContent=(users||[]).length;
+  document.getElementById('s-pending').textContent=pending.length;
+  document.getElementById('s-live').textContent=live.length;
+  document.getElementById('s-total-orders').textContent=(orders||[]).length;
+  const badge=document.getElementById('pending-count');
+  if(pending.length>0){badge.textContent=pending.length;badge.style.display=''}
+  else badge.style.display='none';
+  const el=document.getElementById('overview-pending');
+  if(!pending.length){el.innerHTML='<div class="empty"><i class="fa fa-check-circle" style="color:var(--green)"></i>暂无待审核票务</div>';return}
+  el.innerHTML=renderListingsTable(pending,users||[],true);
+}
+
+// ── SHOWS ──
+let newShowDates=[];
+function addDateTag(e){
+  if(e.key!=='Enter'&&e.key!==','&&e.key!=='，')return;
+  e.preventDefault();
+  const val=e.target.value.trim().replace(/，/g,'');
+  if(!val)return;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(val)&&!newShowDates.includes(val)){
+    newShowDates.push(val);
+    renderDateTags();
+  }else if(val){
+    e.target.style.borderBottom='1px solid var(--red)';
+    setTimeout(()=>e.target.style.borderBottom='',1000);
+  }
+  e.target.value='';
+}
+function renderDateTags(){
+  const wrap=document.getElementById('ns-dates-tags');
+  wrap.innerHTML=newShowDates.map((d,i)=>`
+    <span class="date-tag">${d}<button type="button" onclick="removeDate(${i})">×</button></span>
+  `).join('');
+}
+function removeDate(i){newShowDates.splice(i,1);renderDateTags()}
+
+async function addShow(){
+  const artist=document.getElementById('ns-artist').value.trim();
+  const city=document.getElementById('ns-city').value.trim();
+  const title=document.getElementById('ns-title').value.trim();
+  const label=document.getElementById('ns-label').value.trim();
+  const type=document.getElementById('ns-type').value;
+  const venue=document.getElementById('ns-venue').value.trim();
+  const pricesRaw=document.getElementById('ns-prices').value.trim();
+  const hot=document.getElementById('ns-hot').checked;
+  if(!artist||!city||!title){alert('请填写艺人、城市和演出全称');return}
+  if(newShowDates.length===0){alert('请至少添加一个演出日期');return}
+  const orig_prices=pricesRaw?pricesRaw.split(',').map(p=>parseInt(p.trim())).filter(Boolean):[];
+  const{error}=await sb.from('shows').insert({
+    artist,city,title,label:label||title,type,venue,
+    dates:newShowDates,date:newShowDates[0],
+    orig_prices,hot,active:true
+  });
+  if(error){
+    // shows 表可能不存在，提示用户
+    if(error.message.includes('does not exist')||error.code==='42P01'){
+      alert('⚠️ 数据库中尚未创建 shows 表。\n\n请在 Supabase 中执行以下 SQL：\n\nCREATE TABLE shows (\n  id bigint generated always as identity primary key,\n  artist text,\n  city text,\n  title text,\n  label text,\n  type text default \'concert\',\n  venue text,\n  date text,\n  dates jsonb default \'[]\',\n  orig_prices jsonb default \'[]\',\n  hot boolean default false,\n  active boolean default true,\n  created_at timestamptz default now()\n);');
+    }else{
+      alert('添加失败：'+error.message);
+    }
+    return;
+  }
+  // reset form
+  document.getElementById('ns-artist').value='';
+  document.getElementById('ns-city').value='';
+  document.getElementById('ns-title').value='';
+  document.getElementById('ns-label').value='';
+  document.getElementById('ns-venue').value='';
+  document.getElementById('ns-prices').value='';
+  document.getElementById('ns-hot').checked=false;
+  newShowDates=[];renderDateTags();
+  loadShows();
+}
+
+async function loadShows(){
+  const{data:shows}=await sb.from('shows').select('*').order('created_at',{ascending:false});
+  const grid=document.getElementById('show-list-grid');
+  if(!shows||!shows.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><i class="fa fa-calendar-times"></i>暂无演出配置，在上方添加第一场演出</div>';
+    return;
+  }
+  grid.innerHTML=shows.map(s=>`
+    <div class="show-list-card">
+      <div class="slc-status">
+        <label class="toggle-switch" title="${s.active?'点击下架':'点击上架'}">
+          <input type="checkbox" ${s.active?'checked':''} onchange="toggleShow(${s.id},this.checked)"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="slc-artist">${s.artist}</div>
+      <div class="slc-title">${s.title}</div>
+      <div class="slc-meta">
+        📍 ${s.city} ${s.venue?'· '+s.venue:''}<br>
+        📅 ${Array.isArray(s.dates)?s.dates.join(' / '):(s.date||'-')}<br>
+        💰 ${Array.isArray(s.orig_prices)&&s.orig_prices.length?'¥'+s.orig_prices.join(' / ¥'):'-'}
+        ${s.hot?'<br>🔥 <span style="color:var(--orange)">热门标记</span>':''}
+      </div>
+      <div class="slc-actions">
+        <button class="btn-sm btn-icon danger" onclick="deleteShow(${s.id})" title="删除"><i class="fa fa-trash"></i></button>
+        ${s.active?'<span class="pill pill-live">上架中</span>':'<span class="pill pill-sold">已下架</span>'}
+      </div>
+    </div>
+  `).join('');
+}
+async function toggleShow(id,active){
+  await sb.from('shows').update({active}).eq('id',id);
+}
+async function deleteShow(id){
+  if(!confirm('确认删除该演出场次？'))return;
+  await sb.from('shows').delete().eq('id',id);
+  loadShows();
+}
+
+// ── LISTINGS ──
+async function loadListings(){
+  const[{data:listings},{data:users}]=await Promise.all([
+    sb.from('listings').select('*').order('created_at',{ascending:false}),
+    sb.from('users').select('id,name,account')
+  ]);
+  const el=document.getElementById('admin-listings');
+  if(!listings||!listings.length){el.innerHTML='<div class="empty"><i class="fa fa-ticket-alt"></i>暂无记录</div>';return}
+  el.innerHTML=renderListingsTable(listings,users||[],false);
+}
+function renderListingsTable(listings,users,pendingOnly){
+  const userMap={};users.forEach(u=>{userMap[u.id]=u});
+  return`<table>
+    <thead><tr>
+      <th>ID</th><th>卖家</th><th>艺人</th><th>演出</th><th>日期</th><th>城市</th><th>张数</th><th>价格</th><th>类型</th><th>流水号</th><th>状态</th><th>时间</th><th>操作</th>
+    </tr></thead>
+    <tbody>${listings.map(l=>{
+      const u=userMap[l.user_id];
+      const sm={pending:'pill-pending',live:'pill-live',sold:'pill-sold',rejected:'pill-rejected'};
+      const st={pending:'待审核',live:'已上架',sold:'已售出',rejected:'已拒绝'};
+      const actions=l.status==='pending'
+        ?`<button class="btn-approve" onclick="approveListing(${l.id})"><i class="fa fa-check"></i> 通过</button><button class="btn-reject" onclick="rejectListing(${l.id})"><i class="fa fa-times"></i> 拒绝</button>`
+        :l.status==='live'?`<button class="btn-remove" onclick="removeListing(${l.id})">下架</button>`:'-';
+      return`<tr>
+        <td style="color:var(--text3);font-family:var(--mono)">${l.id}</td>
+        <td><div style="font-weight:700;font-size:12px">${u?u.name:'-'}</div><div style="color:var(--text2);font-size:11px;font-family:var(--mono)">${u?u.account:l.user_id}</div></td>
+        <td>${l.artist}</td>
+        <td style="max-width:160px;white-space:normal;font-size:12px">${l.title}</td>
+        <td style="white-space:nowrap;font-family:var(--mono);font-size:11px">${l.date}</td>
+        <td>${l.city}</td>
+        <td>${l.qty}张</td>
+        <td style="color:var(--gold);font-weight:700;font-family:var(--mono)">¥${Number(l.price).toLocaleString()}</td>
+        <td style="font-size:11px">${l.ticket_type||'-'}</td>
+        <td class="txid-cell">${l.txid||'-'}</td>
+        <td><span class="pill ${sm[l.status]||'pill-pending'}">${st[l.status]||l.status}</span></td>
+        <td style="white-space:nowrap;color:var(--text3);font-size:11px;font-family:var(--mono)">${new Date(l.created_at).toLocaleString('zh-CN')}</td>
+        <td style="white-space:nowrap">${actions}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+async function approveListing(id){await sb.from('listings').update({status:'live'}).eq('id',id);loadAll();loadListings()}
+async function rejectListing(id){await sb.from('listings').update({status:'rejected'}).eq('id',id);loadAll();loadListings()}
+async function removeListing(id){
+  if(!confirm('确认下架这张票？'))return;
+  await sb.from('listings').update({status:'rejected'}).eq('id',id);
+  loadListings();
+}
+
+// ── ORDERS ──
+async function loadOrders(){
+  const[{data:orders},{data:users}]=await Promise.all([
+    sb.from('orders').select('*').order('created_at',{ascending:false}),
+    sb.from('users').select('id,name,account')
+  ]);
+  const el=document.getElementById('admin-orders');
+  if(!orders||!orders.length){el.innerHTML='<div class="empty"><i class="fa fa-shopping-bag"></i>暂无订单</div>';return}
+  const userMap={};users.forEach(u=>{userMap[u.id]=u});
+  const sm={'待审核':'pill-pending','待发票':'pill-pending','已发票':'pill-live','已完成':'pill-sold','已拒绝':'pill-rejected'};
+  el.innerHTML=`<table>
+    <thead><tr><th>订单ID</th><th>买家</th><th>艺人</th><th>演出</th><th>日期</th><th>张数</th><th>总价</th><th>流水号</th><th>截图</th><th>付款状态</th><th>订单状态</th><th>时间</th><th>操作</th></tr></thead>
+    <tbody>${orders.map(o=>{
+      const u=userMap[o.user_id];
+      return`<tr>
+        <td style="font-family:var(--mono);color:var(--gold);font-size:11px">TJ${o.id}</td>
+        <td><div style="font-weight:700;font-size:12px">${u?u.name:'-'}</div><div style="color:var(--text2);font-size:11px;font-family:var(--mono)">${u?u.account:o.user_id}</div></td>
+        <td>${o.artist}</td>
+        <td style="max-width:140px;white-space:normal;font-size:11px">${o.title}</td>
+        <td style="white-space:nowrap;font-family:var(--mono);font-size:11px">${o.date}</td>
+        <td>${o.qty}张</td>
+        <td style="color:var(--gold);font-weight:700;font-family:var(--mono)">¥${Number(o.total).toLocaleString()}</td>
+        <td class="txid-cell">${o.pay_txid||'-'}</td>
+        <td>${o.pay_screenshot?`<a href="${o.pay_screenshot}" target="_blank" style="color:var(--gold);font-size:11px;font-weight:700"><i class="fa fa-image"></i> 查看</a>`:'<span style="color:var(--text3)">未传</span>'}</td>
+        <td><span class="pill ${sm[o.pay_status||'待审核']||'pill-pending'}">${o.pay_status||'待审核'}</span></td>
+        <td><span class="pill ${sm[o.status]||'pill-pending'}">${o.status}</span></td>
+        <td style="white-space:nowrap;color:var(--text3);font-size:11px;font-family:var(--mono)">${new Date(o.created_at).toLocaleString('zh-CN')}</td>
+        <td style="white-space:nowrap;min-width:160px">
+          ${(o.pay_status==='待审核')?`<button class="btn-approve" onclick="approveOrder(${o.id})" style="margin-bottom:4px"><i class="fa fa-check"></i> 通过</button><button class="btn-reject" onclick="rejectOrder(${o.id})" style="margin-bottom:4px"><i class="fa fa-times"></i> 拒绝</button>`:''}<br>
+          <select class="status-sel" onchange="updateOrderStatus(${o.id},this.value)">
+            <option ${o.status==='待审核'?'selected':''}>待审核</option>
+            <option ${o.status==='待发票'?'selected':''}>待发票</option>
+            <option ${o.status==='已发票'?'selected':''}>已发票</option>
+            <option ${o.status==='已完成'?'selected':''}>已完成</option>
+          </select>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+async function approveOrder(id){await sb.from('orders').update({pay_status:'已通过',status:'待发票'}).eq('id',id);loadOrders()}
+async function rejectOrder(id){await sb.from('orders').update({pay_status:'已拒绝',status:'已拒绝'}).eq('id',id);loadOrders()}
+async function updateOrderStatus(id,status){await sb.from('orders').update({status}).eq('id',id)}
+
+// ── USERS ──
+async function loadUsers(){
+  const[{data:users},{data:listings},{data:orders}]=await Promise.all([
+    sb.from('users').select('*').order('created_at',{ascending:false}),
+    sb.from('listings').select('user_id,status'),
+    sb.from('orders').select('user_id')
+  ]);
+  const el=document.getElementById('admin-users');
+  if(!users||!users.length){el.innerHTML='<div class="empty"><i class="fa fa-users"></i>暂无用户</div>';return}
+  el.innerHTML=`<table>
+    <thead><tr><th>ID</th><th>昵称</th><th>账号</th><th>出票中</th><th>订单数</th><th>注册时间</th></tr></thead>
+    <tbody>${users.map(u=>{
+      const uListings=(listings||[]).filter(l=>l.user_id===u.id&&l.status==='live').length;
+      const uOrders=(orders||[]).filter(o=>o.user_id===u.id).length;
+      return`<tr>
+        <td style="color:var(--text3);font-family:var(--mono);font-size:11px">${u.id}</td>
+        <td><strong>${u.name}</strong></td>
+        <td style="font-family:var(--mono);font-size:12px">${u.account}</td>
+        <td><span style="color:var(--gold);font-weight:700">${uListings}</span></td>
+        <td>${uOrders}</td>
+        <td style="color:var(--text3);font-size:11px;font-family:var(--mono)">${new Date(u.created_at).toLocaleString('zh-CN')}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+</script>
+</body>
+</html>

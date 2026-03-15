@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>票务助手 · 专业担保交易平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" onerror="loadFAFallback()">
+<link id="fa-fallback" rel="stylesheet" disabled>
+<style>
+/* 图标加载失败时的文字替代 */
+.fa-shield-alt::before{content:"🛡"}
+.fa-search::before{content:"🔍"}
+.fa-check-circle::before{content:"✅"}
+.fa-users::before{content:"👥"}
+.fa-bolt::before{content:"⚡"}
+.fa-home::before{content:"🏠"}
+.fa-ticket-alt::before{content:"🎫"}
+.fa-shopping-bag::before{content:"🛍"}
+.fa-user::before{content:"👤"}
+.fa-plus::before{content:"＋"}
+.fa-times::before{content:"✕"}
+.fa-eye::before{content:"👁"}
+.fa-eye-slash::before{content:"🙈"}
+.fa-wallet::before{content:"💰"}
+.fa-arrow-up::before{content:"↑"}
+.fa-list::before{content:"≡"}
+.fa-credit-card::before{content:"💳"}
+.fa-university::before{content:"🏦"}
+.fa-copy::before{content:"📋"}
+.fa-image::before{content:"🖼"}
+.fa-paper-plane::before{content:"📤"}
+.fa-lock::before{content:"🔒"}
+.fa-map-marker-alt::before{content:"📍"}
+.fa-tag::before{content:"🏷"}
+.fa-sign-out-alt::before{content:"→"}
+.fa-user-circle::before{content:"👤"}
+.fa-chart-bar::before{content:"📊"}
+.fa-calendar-alt::before{content:"📅"}
+.fa-clock::before{content:"⏰"}
+.fa-sync::before{content:"↻"}
+.fa-check::before{content:"✓"}
+.fa-trash::before{content:"🗑"}
+.fa-chevron-down::before{content:"▾"}
+.fa-upload::before{content:"⬆"}
+.fa-spinner::before{content:"⟳"}
+.fa-bell::before{content:"🔔"}
+.fa-hand-pointer::before{content:"👆"}
+.fa-exclamation-circle::before{content:"⚠"}
+.fa-check-circle::before{content:"✅"}
+.fa-plus-circle::before{content:"➕"}
+.fa-info-circle::before{content:"ℹ"}
+.fa-star::before{content:"⭐"}
+</style>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0d0d0f;
+  --ink2:#1c1c20;
+  --ink3:#2a2a30;
+  --surface:#16161a;
+  --surface2:#1e1e24;
+  --surface3:#26262e;
+  --border:rgba(255,255,255,0.07);
+  --border-md:rgba(255,255,255,0.13);
+  --text:#f0ede8;
+  --text2:#9e9a94;
+  --text3:#585550;
+  --gold:#d4a847;
+  --gold2:#b8902e;
+  --gold-bg:rgba(212,168,71,0.1);
+  --gold-border:rgba(212,168,71,0.25);
+  --red:#e8304a;
+  --red-dark:#c4243c;
+  --red-bg:rgba(232,48,74,0.1);
+  --red-border:rgba(232,48,74,0.3);
+  --green:#3dba6f;
+  --green-bg:rgba(61,186,111,0.1);
+  --green-border:rgba(61,186,111,0.25);
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:18px;--r-2xl:24px;
+  --serif:'Noto Serif SC',serif;
+  --mono:'DM Mono',monospace;
+  --sans:system-ui,'PingFang SC','Microsoft YaHei',sans-serif;
+  --nav-h:58px;
+}
+body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;background:var(--surface);min-height:100vh;position:relative}
+
+/* ── OVERLAY / MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(4px)}
+.overlay.show{display:flex;animation:fadeIn .2s ease}
+@media(min-width:500px){.overlay{align-items:center;padding:20px}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface2);border-radius:var(--r-2xl) var(--r-2xl) 0 0;padding:24px 20px 32px;width:100%;max-width:460px;position:relative;animation:slideUp .25s ease}
+@media(min-width:500px){.modal{border-radius:var(--r-2xl);padding:28px 24px}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:36px;height:3px;background:var(--border-md);border-radius:3px;margin:0 auto 20px}
+@media(min-width:500px){.modal-handle{display:none}}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--surface3);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;color:var(--text2);font-size:13px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{color:var(--text);background:var(--border-md)}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:18px;font-family:var(--serif)}
+.modal-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--surface3);border-radius:var(--r-md);padding:4px}
+.modal-tab{flex:1;padding:7px;font-size:13px;font-weight:600;cursor:pointer;border-radius:var(--r-sm);color:var(--text2);text-align:center;transition:all .15s}
+.modal-tab.active{background:var(--surface2);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+
+/* ── NAV ── */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:var(--nav-h);border-bottom:0.5px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:9px;cursor:pointer;text-decoration:none}
+.logo-mark{width:32px;height:32px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:17px;height:17px;fill:var(--ink)}
+.logo-name{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--text);letter-spacing:0.3px}
+.logo-name em{color:var(--gold);font-style:normal}
+.nav-right{display:flex;align-items:center;gap:8px}
+.btn{padding:7px 14px;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;border:0.5px solid var(--border-md);background:transparent;color:var(--text2);transition:all .15s;font-family:var(--sans)}
+.btn:hover{background:var(--surface3);color:var(--text)}
+.btn-gold{background:var(--gold);color:var(--ink);border-color:var(--gold);font-weight:700}
+.btn-gold:hover{background:var(--gold2);border-color:var(--gold2);color:var(--ink)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--ink);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.user-menu{position:relative}
+.user-dropdown{display:none;position:absolute;right:0;top:42px;background:var(--surface2);border:0.5px solid var(--border-md);border-radius:var(--r-lg);padding:6px;min-width:148px;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+.user-dropdown.show{display:block;animation:fadeIn .15s ease}
+.user-dropdown a{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:var(--text2);cursor:pointer;border-radius:var(--r-sm)}
+.user-dropdown a i{width:14px;text-align:center;font-size:12px}
+.user-dropdown a:hover{background:var(--surface3);color:var(--text)}
+.logout{color:var(--red)!important}
+.user-dropdown hr{border:none;border-top:0.5px solid var(--border);margin:4px 0}
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:720px;background:var(--surface);border-top:0.5px solid var(--border);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+@media(max-width:640px){.bottom-nav{display:flex}}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 7px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;transition:color .15s;border:none;background:none;font-family:var(--sans)}
+.bn-item i{font-size:18px}
+.bn-item.active{color:var(--gold)}
+.bn-item.bn-sell{color:var(--text)}
+.bn-sell-btn{width:44px;height:44px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:2px;box-shadow:0 4px 16px rgba(212,168,71,0.4)}
+.bn-sell-btn i{font-size:19px;color:var(--ink)}
+
+/* ── DESKTOP TABS ── */
+.tabs{display:flex;border-bottom:0.5px solid var(--border);padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+@media(max-width:640px){.tabs{display:none}}
+.tab{padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:color .15s;white-space:nowrap;flex-shrink:0}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab:hover{color:var(--text)}
+.content{padding:16px;padding-bottom:80px}
+@media(min-width:641px){.content{padding-bottom:20px}}
+.page{display:none}
+.page.active{display:block}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(160deg,#0a0a0e 0%,#12101a 50%,#0f0a08 100%);border-radius:var(--r-xl);padding:22px 18px 20px;margin-bottom:14px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+.hero-tag{display:inline-flex;align-items:center;gap:5px;background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--gold);margin-bottom:10px}
+.hero-tag i{font-size:9px}
+.hero h2{font-family:var(--serif);color:#fff;font-size:20px;font-weight:700;margin-bottom:5px;line-height:1.3}
+.hero p{color:rgba(255,255,255,0.4);font-size:12px;margin-bottom:14px;line-height:1.6}
+.hero-search{display:flex;gap:8px}
+.search-input{flex:1;padding:10px 14px;border-radius:var(--r-md);border:0.5px solid rgba(255,255,255,0.1);font-size:14px;background:rgba(255,255,255,0.08);color:#fff;font-family:var(--sans);outline:none;transition:all .15s;min-width:0}
+.search-input::placeholder{color:rgba(255,255,255,0.3)}
+.search-input:focus{background:rgba(255,255,255,0.12);border-color:rgba(212,168,71,0.4)}
+.btn-search{padding:10px 16px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-md);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);flex-shrink:0;transition:background .15s}
+.btn-search:hover{background:var(--gold2)}
+.hero-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:0.5px solid rgba(255,255,255,0.06)}
+.hero-stat{font-size:11px;color:rgba(255,255,255,0.35);display:flex;align-items:center;gap:4px}
+.hero-stat strong{color:var(--gold);font-size:13px}
+
+/* ── BANNER ── */
+.banner{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,rgba(212,168,71,0.06),rgba(212,168,71,0.02));border:0.5px solid var(--gold-border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:10px}
+.banner i{font-size:14px;color:var(--gold);flex-shrink:0}
+.banner-text{font-size:13px;color:var(--text2);flex:1;line-height:1.5}
+.banner-text strong{color:var(--text)}
+.banner-tag{background:var(--gold);color:var(--ink);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+
+/* ── CHIPS ── */
+.chips{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:0.5px solid var(--border-md);background:transparent;color:var(--text2);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.chip:hover{border-color:var(--gold-border);color:var(--text)}
+.chip.active{background:var(--gold-bg);color:var(--gold);border-color:var(--gold-border)}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.filter-select{padding:6px 10px;border-radius:var(--r-md);border:0.5px solid var(--border-md);background:var(--surface3);color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;outline:none}
+.filter-select:focus{border-color:var(--gold)}
+.result-count{font-size:11px;color:var(--text3);margin-left:auto}
+
+/* ── TICKET GRID ── */
+/* ── TICKET GRID - 摩天轮风格 ── */
+.ticket-grid{display:flex;flex-direction:column;gap:12px}
+.ticket-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden;cursor:pointer;transition:all .2s}
+.ticket-card:hover{border-color:var(--gold-border);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.4)}
+
+/* 海报区 */
+.card-img{width:100%;aspect-ratio:16/7;position:relative;background:var(--surface3);overflow:hidden;display:block}
+.card-img img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:transform .3s}
+.ticket-card:hover .card-img img{transform:scale(1.03)}
+.card-img-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a28,#0f0f18)}
+.card-emoji{font-size:56px;opacity:0.6}
+.card-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.75) 100%)}
+.card-img-bottom{position:absolute;bottom:0;left:0;right:0;padding:12px 14px}
+.card-artist-over{font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);margin-bottom:2px}
+.card-city-over{font-size:11px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:5px}
+.card-city-over i{font-size:10px}
+.card-badge{position:absolute;top:10px;left:10px;color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;backdrop-filter:blur(4px)}
+.badge-hot{background:rgba(224,90,0,0.85)}
+.badge-rare{background:rgba(123,47,247,0.85)}
+
+/* 信息区 */
+.card-body{padding:12px 14px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-body-left{flex:1;min-width:0}
+.card-title-row{font-size:13px;color:var(--text2);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-meta-chip{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:3px}
+.card-meta-chip i{font-size:10px;color:var(--text3)}
+.card-body-right{text-align:right;flex-shrink:0}
+.card-price{color:var(--gold);font-size:20px;font-weight:700;font-family:var(--mono);line-height:1}
+.card-price-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.card-orig{color:var(--text3);font-size:10px;text-decoration:line-through}
+.btn-buy{margin-top:8px;padding:7px 16px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-md);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:all .15s;white-space:nowrap;display:block}
+.btn-buy:hover{background:var(--gold2)}
+.no-result{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px}
+.no-result i{font-size:32px;margin-bottom:10px;display:block;color:var(--text3)}
+.card-tear{display:none}
+
+/* ── ORDER MODAL ── */
+/* ── 票源选择 ── */
+.order-show-header{padding:16px 16px 12px;border-bottom:0.5px solid var(--border)}
+.order-show-event{font-size:15px;font-weight:700;font-family:var(--serif);margin-bottom:4px}
+.order-show-sub{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.order-show-sub .dot{width:4px;height:4px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.order-sort-bar{display:flex;align-items:center;gap:4px;padding:10px 16px;border-bottom:0.5px solid var(--border);background:var(--surface3)}
+.order-sort-btn{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:0.5px solid var(--border-md);background:transparent;color:var(--text2);transition:all .15s;font-family:var(--sans)}
+.order-sort-btn.active{background:var(--gold-bg);color:var(--gold);border-color:var(--gold-border)}
+.order-tier{border-bottom:0.5px solid var(--border)}
+.order-tier-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface3);cursor:pointer;user-select:none}
+.order-tier-left{display:flex;align-items:center;gap:10px}
+.order-tier-price{font-size:18px;font-weight:700;color:var(--gold);font-family:var(--mono);line-height:1}
+.order-tier-orig{font-size:11px;color:var(--text3);text-decoration:line-through;margin-top:2px}
+.order-tier-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.badge-cheap{background:rgba(232,48,74,0.15);color:#e8304a;border:0.5px solid rgba(232,48,74,0.3)}
+.badge-mid{background:var(--gold-bg);color:var(--gold);border:0.5px solid var(--gold-border)}
+.order-tier-right{display:flex;align-items:center;gap:8px}
+.order-tier-count{font-size:11px;color:var(--text2)}
+.order-tier-arrow{font-size:11px;color:var(--text3);transition:transform .2s}
+.order-tier-arrow.open{transform:rotate(180deg)}
+.order-tier-body{padding:0 16px 12px}
+.order-source-item{display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface3);border-radius:var(--r-md);margin-top:8px;border:0.5px solid var(--border);transition:all .15s;cursor:pointer}
+.order-source-item:hover{border-color:var(--gold-border);background:rgba(212,168,71,0.04)}
+.osi-icon{width:36px;height:36px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.osi-body{flex:1;min-width:0}
+.osi-type{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
+.osi-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.osi-tag{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;border:0.5px solid var(--border-md);color:var(--text2)}
+.osi-tag.green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.osi-tag.orange{background:rgba(240,119,48,0.1);color:#f07730;border-color:rgba(240,119,48,0.3)}
+.osi-seller{font-size:10px;color:var(--text3)}
+.osi-right{text-align:right;flex-shrink:0}
+.osi-price-big{font-size:18px;font-weight:700;color:var(--gold);font-family:var(--mono);line-height:1}
+.osi-qty{font-size:10px;color:var(--text2);margin-top:3px}
+.osi-btn{margin-top:6px;padding:5px 14px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-sm);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:background .15s}
+.osi-btn:hover{background:var(--gold2)}
+.order-ticket-info{background:var(--surface3);border-radius:var(--r-md);padding:12px;margin-bottom:14px;border:0.5px solid var(--border)}
+.otear{height:1px;background:repeating-linear-gradient(90deg,var(--border-md) 0px,var(--border-md) 5px,transparent 5px,transparent 9px);margin:10px 0}
+.order-ticket-name{font-size:14px;font-weight:700;margin-bottom:3px;font-family:var(--serif)}
+.order-ticket-meta{font-size:12px;color:var(--text2);line-height:1.8;white-space:pre-line}
+.order-qty-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.qty-label{font-size:13px;font-weight:600}
+.qty-ctrl{display:flex;align-items:center;gap:12px}
+.qty-btn{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--border-md);background:var(--surface3);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:var(--text);transition:all .15s}
+.qty-btn:hover{background:var(--surface2);border-color:var(--gold)}
+.qty-num{font-size:16px;font-weight:700;min-width:22px;text-align:center;font-family:var(--mono)}
+.order-price-box{background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px}
+.order-price-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;color:var(--text2)}
+.order-price-row.total{font-weight:700;font-size:15px;color:var(--gold);margin-bottom:0;margin-top:6px;padding-top:6px;border-top:0.5px solid var(--gold-border)}
+.bank-box{background:var(--surface3);border:0.5px solid var(--border-md);border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px}
+.bank-title{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600}
+.bank-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;line-height:1.8}
+.bank-row span:first-child{color:var(--text2)}
+.bank-row span:last-child{font-weight:600;color:var(--text);font-family:var(--mono)}
+.btn-copy{display:block;width:100%;margin-top:10px;padding:8px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-md);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:background .15s}
+.btn-copy:hover{background:var(--gold2)}
+.form-label{font-size:12px;color:var(--text2);font-weight:600;margin-bottom:5px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:0.5px solid var(--border-md);border-radius:var(--r-md);font-size:14px;background:var(--surface3);color:var(--text);font-family:var(--sans);transition:border-color .15s,box-shadow .15s;outline:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,71,0.1)}
+.form-textarea{resize:vertical;min-height:72px}
+.form-error{font-size:11px;color:var(--red);margin-top:4px;display:none}
+.form-error.show{display:block}
+.upload-area{border:1.5px dashed var(--border-md);border-radius:var(--r-md);padding:16px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.upload-area:hover,.upload-area:focus-within{border-color:var(--gold)}
+.upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-area i{font-size:22px;color:var(--text3);margin-bottom:5px;display:block}
+.upload-area p{font-size:12px;color:var(--text2)}
+.upload-name{font-size:11px;color:var(--green);margin-top:4px}
+.btn-pay{width:100%;padding:13px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:background .15s;margin-top:4px}
+.btn-pay:hover{background:var(--gold2)}
+.success-screen{display:none;text-align:center;padding:10px 0}
+.success-screen.show{display:block}
+.success-icon{font-size:52px;margin-bottom:12px}
+.success-title{font-size:18px;font-weight:700;margin-bottom:6px;font-family:var(--serif)}
+.success-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6}
+.order-no-box{background:var(--surface3);border-radius:var(--r-md);padding:10px 14px;font-size:13px;color:var(--text2);margin-bottom:20px;font-family:var(--mono)}
+.order-no-box span{font-weight:700;color:var(--gold)}
+.btn-full{width:100%;padding:11px;border-radius:var(--r-md);font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:var(--sans);background:var(--surface3);color:var(--text);transition:background .15s}
+.btn-full:hover{background:var(--border-md)}
+
+/* ── DEPOSIT MODAL ── */
+.dep-box{background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px}
+.dep-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:5px}
+.dep-row.dep-total{font-weight:700;font-size:15px;color:var(--gold);margin:8px 0 0;padding-top:8px;border-top:0.5px solid var(--gold-border)}
+
+/* ── SELL FORM ── */
+.sell-form{max-width:560px}
+.form-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:12px}
+.form-card-title{font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-group{margin-bottom:10px}
+.form-group:last-child{margin-bottom:0}
+.fee-preview{display:none;background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:11px 14px;margin-top:6px;justify-content:space-between;align-items:center}
+.fee-preview.show{display:flex}
+.fee-label{font-size:12px;color:var(--gold);font-weight:600}
+.fee-sub{font-size:11px;color:var(--text2)}
+.fee-net{font-size:17px;font-weight:700;color:var(--gold);font-family:var(--mono)}
+.btn-submit{width:100%;padding:13px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-lg);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:background .15s}
+.btn-submit:hover{background:var(--gold2)}
+.toast{display:none;background:var(--green-bg);border:0.5px solid var(--green-border);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:12px;align-items:center;gap:10px}
+.toast.show{display:flex}
+.toast span{font-size:13px;color:var(--green);font-weight:500}
+
+/* ── LIST ROWS ── */
+.list-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-top:10px}
+.list-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid var(--border)}
+.list-row:last-child{border-bottom:none}
+.list-icon{width:36px;height:36px;background:var(--surface3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.list-main{flex:1;min-width:0}
+.list-name{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--serif)}
+.list-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.list-right{text-align:right;flex-shrink:0}
+.list-price{font-size:14px;font-weight:700;color:var(--gold);font-family:var(--mono)}
+.pill{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;margin-top:4px;display:inline-block}
+.pill-live{background:var(--green-bg);color:var(--green)}
+.pill-sold{background:var(--surface3);color:var(--text3)}
+.pill-pending{background:rgba(255,180,0,0.1);color:#c8960a}
+
+/* ── AUTH ── */
+.auth-group{margin-bottom:14px}
+.auth-switch{text-align:center;font-size:13px;color:var(--text2);margin-top:14px}
+.auth-switch a{color:var(--gold);cursor:pointer;font-weight:600}
+
+/* ── PROFILE ── */
+.profile-header{background:linear-gradient(160deg,#0a0a0e,#12101a);border-radius:var(--r-xl);padding:20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;border:0.5px solid var(--border)}
+.profile-avatar-lg{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--ink);font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--serif)}
+.profile-name{color:#fff;font-size:16px;font-weight:700;font-family:var(--serif)}
+.profile-sub{color:rgba(255,255,255,0.4);font-size:12px;margin-top:3px;font-family:var(--mono)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px;text-align:center}
+.stat-num{font-size:24px;font-weight:700;color:var(--gold);font-family:var(--mono)}
+.stat-label{font-size:10px;color:var(--text2);margin-top:2px;font-weight:600}
+.info-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:14px}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-row span:first-child{color:var(--text2)}
+.info-row span:last-child{font-weight:600;font-family:var(--mono)}
+
+/* ── BALANCE CARD ── */
+.balance-card{background:linear-gradient(135deg,#1a1508 0%,#2a2010 60%,#1a1000 100%);border:0.5px solid var(--gold-border);border-radius:var(--r-xl);padding:20px;margin-bottom:12px;position:relative;overflow:hidden}
+.balance-card::before{content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(212,168,71,0.08) 0%,transparent 70%);pointer-events:none}
+.balance-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.balance-label{font-size:12px;color:rgba(212,168,71,0.6);font-weight:600;display:flex;align-items:center;gap:5px}
+.balance-label i{font-size:11px}
+.balance-eye{background:none;border:none;cursor:pointer;color:rgba(212,168,71,0.5);font-size:13px;padding:0;transition:color .15s}
+.balance-eye:hover{color:var(--gold)}
+.balance-amount{font-size:32px;font-weight:700;color:var(--gold);font-family:var(--mono);line-height:1;margin-bottom:4px}
+.balance-amount .unit{font-size:16px;margin-right:2px;font-weight:400}
+.balance-frozen{font-size:11px;color:rgba(212,168,71,0.4);margin-bottom:16px}
+.balance-actions{display:flex;gap:8px}
+.balance-btn{flex:1;padding:9px;border-radius:var(--r-md);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--sans);border:none;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.balance-btn-withdraw{background:var(--gold);color:var(--ink)}
+.balance-btn-withdraw:hover{background:var(--gold2)}
+.balance-btn-record{background:rgba(255,255,255,0.06);color:var(--text2);border:0.5px solid var(--border-md)}
+.balance-btn-record:hover{background:rgba(255,255,255,0.1);color:var(--text)}
+
+/* ── BANK BIND CARD ── */
+.bank-bind-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px}
+.bank-bind-header{padding:13px 16px;display:flex;align-items:center;justify-content:space-between}
+.bank-bind-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+.bank-bind-title i{color:var(--gold)}
+.bank-add-btn{padding:5px 12px;background:var(--gold-bg);color:var(--gold);border:0.5px solid var(--gold-border);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.bank-add-btn:hover{background:var(--gold);color:var(--ink)}
+.bank-empty{padding:20px 16px;text-align:center;color:var(--text3);font-size:13px;border-top:0.5px solid var(--border)}
+.bank-empty i{font-size:24px;display:block;margin-bottom:6px;color:var(--text3)}
+.bank-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:0.5px solid var(--border);transition:background .15s}
+.bank-item:hover{background:rgba(255,255,255,0.02)}
+.bank-item-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1a3a6a,#0d2040);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.bank-item-body{flex:1;min-width:0}
+.bank-item-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.bank-item-no{font-size:12px;color:var(--text2);font-family:var(--mono)}
+.bank-item-default{font-size:10px;background:var(--gold-bg);color:var(--gold);border:0.5px solid var(--gold-border);padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:600}
+.bank-item-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:6px;border-radius:var(--r-sm);transition:color .15s}
+.bank-item-del:hover{color:var(--red)}
+
+/* ── WITHDRAW/BIND OVERLAY ── */
+.withdraw-steps{display:flex;align-items:center;gap:0;margin-bottom:20px}
+.ws-step{flex:1;text-align:center;font-size:11px;color:var(--text3);position:relative}
+.ws-step.active{color:var(--gold)}
+.ws-dot{width:22px;height:22px;border-radius:50%;background:var(--surface3);border:0.5px solid var(--border-md);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:10px;font-weight:700;color:var(--text3)}
+.ws-step.active .ws-dot{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.ws-step.done .ws-dot{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.ws-line{width:100%;height:1px;background:var(--border);position:absolute;top:11px;left:50%;z-index:-1}
+
+/* ── 出票凭证 ── */
+.ticket-proof-box{background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px;margin-top:8px}
+.ticket-proof-title{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.ticket-proof-title i{color:var(--gold)}
+.proof-img-wrap{position:relative;display:inline-block}
+.proof-img{width:100%;max-width:260px;border-radius:var(--r-md);cursor:pointer;display:block;border:0.5px solid var(--border-md)}
+.proof-upload-area{border:1.5px dashed var(--border-md);border-radius:var(--r-md);padding:14px;text-align:center;cursor:pointer;transition:all .15s;position:relative;background:var(--surface2)}
+.proof-upload-area:hover{border-color:var(--gold)}
+.proof-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.proof-upload-area i{font-size:20px;color:var(--text3);margin-bottom:4px;display:block}
+.proof-upload-area p{font-size:11px;color:var(--text2)}
+.btn-upload-proof{width:100%;padding:8px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-md);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);margin-top:8px;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.btn-upload-proof:hover{background:var(--gold2)}
+.btn-upload-proof:disabled{background:var(--surface3);color:var(--text3);cursor:not-allowed}
+.proof-notify-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(61,186,111,0.15);border:0.5px solid var(--green-border);border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;color:var(--green);margin-top:6px}
+.new-ticket-banner{background:linear-gradient(90deg,rgba(61,186,111,0.08),rgba(61,186,111,0.02));border:0.5px solid var(--green-border);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;animation:pulse-green 2s ease infinite}
+@keyframes pulse-green{0%,100%{border-color:var(--green-border)}50%{border-color:var(--green)}}
+.new-ticket-banner i{font-size:20px;color:var(--green);flex-shrink:0}
+.new-ticket-banner-text{flex:1}
+.new-ticket-banner-title{font-size:13px;font-weight:700;color:var(--green);margin-bottom:2px}
+.new-ticket-banner-sub{font-size:11px;color:var(--text2)}
+.btn-view-proof{padding:5px 12px;background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border);border-radius:var(--r-sm);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap;flex-shrink:0;transition:all .15s}
+.btn-view-proof:hover{background:var(--green);color:#fff}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-family:var(--serif)}
+.section-title::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px;flex-shrink:0}
+
+/* ── LOADING ── */
+.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r-md)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+@media(max-width:480px){
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="auth-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeAuth()"><i class="fa fa-times"></i></button>
+    <div class="modal-tabs">
+      <div class="modal-tab active" id="atab-login" onclick="switchAuthTab('login')">登录</div>
+      <div class="modal-tab" id="atab-reg" onclick="switchAuthTab('reg')">注册账号</div>
+    </div>
+    <div id="auth-login">
+      <div class="auth-group">
+        <label class="form-label">手机号 / 邮箱</label>
+        <input class="form-input" id="l-account" placeholder="请输入手机号或邮箱" autocomplete="username"/>
+        <div class="form-error" id="l-err">请输入账号</div>
+      </div>
+      <div class="auth-group">
+        <label class="form-label">密码</label>
+        <input class="form-input" type="password" id="l-pass" placeholder="请输入密码" autocomplete="current-password"/>
+        <div class="form-error" id="l-perr">请输入密码</div>
+      </div>
+      <button class="btn-submit" onclick="doLogin()">立即登录</button>
+      <div class="auth-switch">还没有账号？<a onclick="switchAuthTab('reg')">立即注册</a></div>
+    </div>
+    <div id="auth-reg" style="display:none">
+      <div class="auth-group">
+        <label class="form-label">昵称</label>
+        <input class="form-input" id="r-name" placeholder="给自己起个名字"/>
+      </div>
+      <div class="auth-group">
+        <label class="form-label">手机号 / 邮箱</label>
+        <input class="form-input" id="r-account" placeholder="手机号或邮箱" autocomplete="username"/>
+        <div class="form-error" id="r-aerr">请填写账号</div>
+      </div>
+      <div class="auth-group">
+        <label class="form-label">密码</label>
+        <input class="form-input" type="password" id="r-pass" placeholder="至少6位" autocomplete="new-password"/>
+        <div class="form-error" id="r-perr">密码至少6位</div>
+      </div>
+      <button class="btn-submit" onclick="doRegister()">创建账号</button>
+      <div class="auth-switch">已有账号？<a onclick="switchAuthTab('login')">立即登录</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- 保证金弹窗 -->
+<div class="overlay" id="deposit-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="document.getElementById('deposit-overlay').classList.remove('show')"><i class="fa fa-times"></i></button>
+    <div class="modal-title">🔒 上架保证金</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">为保障买家权益，上架需支付票款 <strong style="color:var(--gold)">50%</strong> 作为保证金，成功出票后全额退还。</p>
+    <div class="dep-box">
+      <div class="dep-row"><span>出售单价</span><span id="dep-price"></span></div>
+      <div class="dep-row"><span>上架张数</span><span id="dep-qty"></span></div>
+      <div class="dep-row"><span>票款总额</span><span id="dep-total"></span></div>
+      <div class="dep-row dep-total"><span>需缴保证金</span><span id="dep-amount"></span></div>
+    </div>
+    <div class="bank-box">
+      <div class="bank-title"><i class="fa fa-university" style="margin-right:5px;color:var(--gold)"></i>收款账户</div>
+      <div class="bank-row"><span>开户行</span><span>中国工商银行</span></div>
+      <div class="bank-row"><span>户名</span><span>肖宏涛</span></div>
+      <div class="bank-row"><span>卡号</span><span>6222 0340 0006 1712 927</span></div>
+      <div class="bank-row"><span>备注</span><span id="dep-remark" style="color:var(--gold)"></span></div>
+      <button class="btn-copy" id="dep-copy-btn" onclick="copyDepositNo()"><i class="fa fa-copy" style="margin-right:5px"></i>一键复制账户信息</button>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">银行流水号（付款后填写）</label>
+      <input class="form-input" id="dep-txid" placeholder="请输入转账流水号（纯数字，12位以上）" inputmode="numeric"/>
+      <div id="dep-txid-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请输入正确的流水号（纯数字，至少12位）</div>
+    </div>
+    <button class="btn-pay" onclick="confirmDeposit()">确认已付款，提交上架申请</button>
+  </div>
+</div>
+
+<!-- 购票弹窗 -->
+<div class="overlay" id="order-overlay">
+  <div class="modal" style="max-height:90vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeOrder()"><i class="fa fa-times"></i></button>
+    <!-- 选票源 -->
+    <div id="order-select-view" style="margin:-24px -20px 0;overflow:hidden">
+      <div class="order-show-header">
+        <div class="order-show-event" id="oss-title"></div>
+        <div class="order-show-sub" id="oss-sub"></div>
+      </div>
+      <div class="order-sort-bar">
+        <span style="font-size:11px;color:var(--text2);margin-right:4px">排序：</span>
+        <button class="order-sort-btn active" onclick="sortSources('price',this)">价格最低</button>
+        <button class="order-sort-btn" onclick="sortSources('orig',this)">按面价</button>
+      </div>
+      <div id="order-show-list" style="overflow-y:auto;max-height:55vh"></div>
+    </div>
+    <!-- 填写订单 -->
+    <div id="order-form-view" style="display:none">
+      <div class="modal-title">确认订单</div>
+      <div class="order-ticket-info">
+        <div class="order-ticket-name" id="o-name"></div>
+        <div class="otear"></div>
+        <div class="order-ticket-meta" id="o-meta"></div>
+      </div>
+      <div class="order-qty-row">
+        <span class="qty-label">购票数量</span>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <span class="qty-num" id="o-qty">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <div class="order-price-box">
+        <div class="order-price-row"><span>票价</span><span id="o-unit-price"></span></div>
+        <div class="order-price-row"><span>数量</span><span id="o-qty-show"></span></div>
+        <div class="order-price-row total"><span>合计</span><span id="o-total"></span></div>
+      </div>
+      <div class="bank-box">
+        <div class="bank-title"><i class="fa fa-university" style="margin-right:5px;color:var(--gold)"></i>付款账户</div>
+        <div class="bank-row"><span>开户行</span><span>中国工商银行</span></div>
+        <div class="bank-row"><span>户名</span><span>肖宏涛</span></div>
+        <div class="bank-row"><span>卡号</span><span>6222 0340 0006 1712 927</span></div>
+        <div class="bank-row"><span>备注</span><span id="o-remark" style="color:var(--gold)"></span></div>
+        <button class="btn-copy" id="copy-btn" onclick="copyBankNo()"><i class="fa fa-copy" style="margin-right:5px"></i>一键复制账户信息</button>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">上传付款截图</label>
+        <div class="upload-area">
+          <input type="file" id="o-screenshot" accept="image/*" onchange="updateFileName(this)"/>
+          <i class="fa fa-image"></i>
+          <p>点击上传付款截图</p>
+          <div class="upload-name" id="o-file-name"></div>
+        </div>
+        <div id="o-screenshot-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传付款截图</div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-label">银行流水号</label>
+        <input class="form-input" id="o-txid" placeholder="付款流水号（纯数字，12位以上）" inputmode="numeric"/>
+        <div id="o-txid-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请输入正确的流水号</div>
+      </div>
+      <button class="btn-pay" onclick="doPay()">提交付款凭证</button>
+    </div>
+    <!-- 成功 -->
+    <div class="success-screen" id="order-success-view">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">提交成功！</div>
+      <div class="success-sub">管理员审核付款后将为您锁定票务<br>请耐心等待通知</div>
+      <div class="order-no-box">订单号：<span id="o-orderid"></span></div>
+      <button class="btn-full" onclick="closeOrder();switchTab('orders')">查看我的订单</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo" onclick="switchTab('home')">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 12H7v-2h4v2zm0-4H7v-2h4v2zm6 4h-4v-2h4v2zm0-4h-4v-2h4v2z"/></svg>
+    </div>
+    <span class="logo-name">票务<em>助手</em></span>
+  </div>
+  <div class="nav-right">
+    <div id="nav-guest" style="display:flex;gap:7px">
+      <button class="btn btn-sm" onclick="openAuth('login')">登录</button>
+      <button class="btn btn-gold btn-sm" onclick="openAuth('reg')">注册</button>
+    </div>
+    <div id="nav-user" style="display:none;align-items:center;gap:8px">
+      <button class="btn btn-gold btn-sm" onclick="needLogin('sell')" style="display:none" id="nav-sell-btn"><i class="fa fa-plus" style="margin-right:4px"></i>出票</button>
+      <div class="user-menu">
+        <div class="avatar" id="nav-avatar" onclick="toggleDropdown()">我</div>
+        <div class="user-dropdown" id="user-dropdown">
+          <a onclick="switchTab('profile');closeDropdown()"><i class="fa fa-user"></i>个人中心</a>
+          <a onclick="switchTab('my');closeDropdown()"><i class="fa fa-ticket-alt"></i>我的出票</a>
+          <a onclick="switchTab('orders');closeDropdown()"><i class="fa fa-shopping-bag"></i>我的订单</a>
+          <hr>
+          <a class="logout" onclick="doLogout()"><i class="fa fa-sign-out-alt"></i>退出登录</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- DESKTOP TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-home" onclick="switchTab('home')">演出大厅</div>
+  <div class="tab" id="tab-sell" onclick="needLogin('sell')">我要出票</div>
+  <div class="tab" id="tab-my" onclick="needLogin('my')">我的出票</div>
+  <div class="tab" id="tab-orders" onclick="needLogin('orders')">我的订单</div>
+  <div class="tab" id="tab-profile" style="display:none" onclick="needLogin('profile')">个人中心</div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bn-item active" id="bn-home" onclick="switchTab('home')">
+    <i class="fa fa-home"></i>大厅
+  </button>
+  <button class="bn-item" id="bn-my" onclick="needLogin('my')">
+    <i class="fa fa-ticket-alt"></i>出票
+  </button>
+  <button class="bn-item bn-sell" onclick="needLogin('sell')">
+    <div class="bn-sell-btn"><i class="fa fa-plus"></i></div>上架
+  </button>
+  <button class="bn-item" id="bn-orders" onclick="needLogin('orders')">
+    <i class="fa fa-shopping-bag"></i>订单
+  </button>
+  <button class="bn-item" id="bn-profile" onclick="needLogin('profile')">
+    <i class="fa fa-user"></i>我的
+  </button>
+</div>
+
+<!-- HOME -->
+<div class="content page active" id="page-home">
+  <div class="hero">
+    <div class="hero-tag"><i class="fa fa-shield-alt"></i>专业担保 · 安全交易 · 零服务费</div>
+    <h2>票圈最靠谱的交易平台</h2>
+    <p>无票赔付30% · 假票赔付三倍 · 告别诈骗 · 放心出票放心买票</p>
+    <div class="hero-search">
+      <input class="search-input" id="search-kw" placeholder="搜索艺人、演出、城市…" oninput="doSearch()" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button class="btn-search" onclick="doSearch()"><i class="fa fa-search"></i></button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><i class="fa fa-check-circle" style="color:var(--green)"></i><strong id="stat-live">--</strong>张在售</div>
+      <div class="hero-stat"><i class="fa fa-users"></i><strong id="stat-users">--</strong>位卖家</div>
+      <div class="hero-stat"><i class="fa fa-bolt" style="color:var(--gold)"></i>零平台服务费</div>
+    </div>
+  </div>
+
+  <!-- 广告轮播 -->
+  <div class="banner-carousel" id="banner-carousel">
+    <div class="banner banner-active">
+      <i class="fa fa-bolt"></i>
+      <div class="banner-text"><strong>黄牛出票首选平台 · 零抽成直接到手</strong> · 上架即得保证金保障，出票秒结算</div>
+      <span class="banner-tag">零费率</span>
+    </div>
+    <div class="banner" style="display:none">
+      <i class="fa fa-shield-alt"></i>
+      <div class="banner-text"><strong>改变票圈诈骗环境</strong> · 平台担保资金，买卖双方都有保障，诈骗者无处遁形</div>
+      <span class="banner-tag">更安全</span>
+    </div>
+    <div class="banner" style="display:none">
+      <i class="fa fa-star"></i>
+      <div class="banner-text"><strong>专业黄牛都在这里出票</strong> · 实名认证 · 资金担保 · 信誉背书，票圈口碑第一</div>
+      <span class="banner-tag">口碑第一</span>
+    </div>
+    <div class="banner" style="display:none">
+      <i class="fa fa-check-circle"></i>
+      <div class="banner-text"><strong>告别微信私下交易风险</strong> · 平台全程监管，买家付款卖家才出票，安全闭环</div>
+      <span class="banner-tag">有保障</span>
+    </div>
+  </div>
+
+  <div class="chips">
+    <span class="chip active" onclick="setTypeFilter('all',this)">全部</span>
+    <span class="chip" onclick="setTypeFilter('concert',this)">🎤 演唱会</span>
+    <span class="chip" onclick="setTypeFilter('talk',this)">🎭 脱口秀</span>
+    <span class="chip" onclick="setTypeFilter('musical',this)">🎶 音乐剧</span>
+    <span class="chip" onclick="setTypeFilter('hot',this)">🔥 抢手</span>
+  </div>
+
+  <div class="filter-row">
+    <select class="filter-select" id="filter-city" onchange="renderTickets()">
+      <option value="">全部城市</option>
+      <option>南宁</option><option>杭州</option><option>广州</option>
+      <option>长沙</option><option>青岛</option><option>太原</option>
+      <option>深圳</option><option>武汉</option><option>北京</option>
+      <option>成都</option><option>厦门</option><option>郑州</option><option>澳门</option>
+    </select>
+    <select class="filter-select" id="filter-sort" onchange="renderTickets()">
+      <option value="default">默认排序</option>
+      <option value="price-asc">价格↑低到高</option>
+      <option value="price-desc">价格↓高到低</option>
+      <option value="date-asc">日期最近</option>
+    </select>
+    <span class="result-count" id="result-count"></span>
+  </div>
+
+  <div class="ticket-grid" id="ticket-grid"></div>
+  <div class="no-result" id="no-result" style="display:none">
+    <i class="fa fa-search"></i>
+    没有找到相关演出，换个关键词试试
+  </div>
+</div>
+
+<!-- SELL -->
+<div class="content page" id="page-sell">
+  <div id="sell-toast" class="toast"><span>✅ 门票已提交审核，管理员审核通过后将显示到前台！</span></div>
+  <div class="section-title">上架我的门票</div>
+  <div class="sell-form">
+    <div class="form-card">
+      <div class="form-card-title">选择演出</div>
+      <div class="form-group">
+        <label class="form-label">选择艺人</label>
+        <select class="form-select" id="f-artist" onchange="updateShowOptions()">
+          <option value="">-- 请选择艺人 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">选择演出场次</label>
+        <select class="form-select" id="f-show" onchange="updateCityDate()">
+          <option value="">-- 请先选择艺人 --</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">演出城市</label>
+          <input class="form-input" id="f-city" readonly placeholder="自动填入" style="background:var(--surface3);color:var(--text2)"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">演出日期</label>
+          <select class="form-select" id="f-date">
+            <option value="">-- 请先选择场次 --</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-title">票务详情</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">张数</label>
+          <select class="form-select" id="f-qty">
+            <option value="1">1张</option><option value="2">2张</option>
+            <option value="3">3张</option><option value="4">4张</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">票务类型</label>
+          <select class="form-select" id="f-tickettype">
+            <option>录信息</option>
+            <option>邀请函秒发</option>
+            <option>邀请函代录</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">原票面价（元）</label>
+        <select class="form-select" id="f-orig" onchange="updateMinPriceHint()">
+          <option value="">-- 请先选择场次 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>出售单价（元）</span>
+          <span id="min-price-hint" style="font-size:11px;color:var(--gold);font-weight:600;display:none"></span>
+        </label>
+        <input type="number" class="form-input" id="f-price" placeholder="请输入出售价格" oninput="updateFee()" inputmode="numeric"/>
+      </div>
+      <div class="fee-preview" id="fee-preview">
+        <div><div class="fee-label">到手金额</div><div class="fee-sub" id="fee-sub">平台暂不收取服务费</div></div>
+        <div class="fee-net" id="fee-net">¥0</div>
+      </div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-title">其他备注（选填）</div>
+      <div class="form-group">
+        <textarea class="form-textarea" id="f-note" placeholder="例：可小刀 · 急出 · 连座"></textarea>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="submitListing()">确认上架门票</button>
+  </div>
+</div>
+
+<!-- MY LISTINGS -->
+<div class="content page" id="page-my">
+  <div class="section-title">我的出票记录</div>
+  <div class="list-card"><div id="my-listings"></div></div>
+</div>
+
+<!-- MY ORDERS -->
+<div class="content page" id="page-orders">
+  <div class="section-title">我的订单</div>
+  <div class="list-card"><div id="my-orders"></div></div>
+</div>
+
+<!-- 绑定银行卡弹窗 -->
+<div class="overlay" id="bank-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeBankModal()"><i class="fa fa-times"></i></button>
+    <div class="modal-title" id="bank-modal-title">绑定银行卡</div>
+    <div class="form-group">
+      <label class="form-label">持卡人姓名</label>
+      <input class="form-input" id="b-name" placeholder="请输入持卡人真实姓名"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">银行卡号</label>
+      <input class="form-input" id="b-cardno" placeholder="请输入银行卡号" inputmode="numeric" maxlength="23"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">开户银行</label>
+      <select class="form-select" id="b-bank">
+        <option value="">-- 选择开户银行 --</option>
+        <option>中国工商银行</option><option>中国农业银行</option>
+        <option>中国银行</option><option>中国建设银行</option>
+        <option>交通银行</option><option>招商银行</option>
+        <option>中国邮政储蓄银行</option><option>浦发银行</option>
+        <option>中信银行</option><option>光大银行</option>
+        <option>平安银行</option><option>兴业银行</option>
+        <option>民生银行</option><option>其他银行</option>
+      </select>
+    </div>
+    <div id="b-err" style="font-size:12px;color:var(--red);margin-bottom:10px;display:none"></div>
+    <button class="btn-submit" onclick="saveBank()"><i class="fa fa-lock" style="margin-right:6px"></i>确认绑定</button>
+    <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.6"><i class="fa fa-shield-alt" style="color:var(--green);margin-right:3px"></i>银行卡信息加密存储，仅用于提现打款</p>
+  </div>
+</div>
+
+<!-- 提现弹窗 -->
+<div class="overlay" id="withdraw-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="document.getElementById('withdraw-overlay').classList.remove('show')"><i class="fa fa-times"></i></button>
+    <div class="modal-title">申请提现</div>
+    <div style="background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:12px;color:var(--text2)">可提现余额</span>
+      <span style="font-size:20px;font-weight:700;color:var(--gold);font-family:var(--mono)" id="wd-balance">¥0.00</span>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">提现金额（元）</label>
+      <input class="form-input" id="wd-amount" placeholder="请输入提现金额" inputmode="decimal" type="number"/>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">单次最低提现 ¥10，最高 ¥50,000</div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">到账银行卡</label>
+      <div id="wd-bank-select" style="font-size:13px;color:var(--text2);padding:9px 12px;background:var(--surface3);border-radius:var(--r-md);border:0.5px solid var(--border-md)">加载中...</div>
+    </div>
+    <div id="wd-err" style="font-size:12px;color:var(--red);margin-bottom:10px;display:none"></div>
+    <button class="btn-submit" onclick="submitWithdraw()"><i class="fa fa-paper-plane" style="margin-right:6px"></i>提交提现申请</button>
+    <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px;line-height:1.6">工作日1-3天到账 · 管理员审核后打款</p>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="content page" id="page-profile">
+  <div class="profile-header">
+    <div class="profile-avatar-lg" id="p-avatar">我</div>
+    <div>
+      <div class="profile-name" id="p-name">用户</div>
+      <div class="profile-sub" id="p-account"></div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="s-listings">0</div><div class="stat-label">出票中</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-orders">0</div><div class="stat-label">我的订单</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-sold">0</div><div class="stat-label">已售出</div></div>
+  </div>
+
+  <!-- 余额卡 -->
+  <div class="balance-card">
+    <div class="balance-card-top">
+      <div class="balance-label"><i class="fa fa-wallet"></i>我的余额</div>
+      <button class="balance-eye" id="balance-eye-btn" onclick="toggleBalanceVisible()"><i class="fa fa-eye" id="balance-eye-icon"></i></button>
+    </div>
+    <div class="balance-amount"><span class="unit">¥</span><span id="p-balance">0.00</span></div>
+    <div class="balance-frozen" id="p-frozen">冻结中：¥0.00（待结算）</div>
+    <div class="balance-actions">
+      <button class="balance-btn balance-btn-withdraw" onclick="openWithdraw()"><i class="fa fa-arrow-up"></i>提现</button>
+      <button class="balance-btn balance-btn-record" onclick=""><i class="fa fa-list"></i>明细</button>
+    </div>
+  </div>
+
+  <!-- 银行卡 -->
+  <div class="bank-bind-card">
+    <div class="bank-bind-header">
+      <div class="bank-bind-title"><i class="fa fa-credit-card"></i>我的银行卡</div>
+      <button class="bank-add-btn" onclick="openBankModal()"><i class="fa fa-plus" style="margin-right:4px"></i>添加</button>
+    </div>
+    <div id="bank-list-wrap"></div>
+  </div>
+
+  <div class="section-title">账号信息</div>
+  <div class="info-card">
+    <div class="info-row"><span>昵称</span><span id="pi-name"></span></div>
+    <div class="info-row"><span>账号</span><span id="pi-account"></span></div>
+    <div class="info-row"><span>注册时间</span><span id="pi-date"></span></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://zrpibxtfgbqsckmobndl.supabase.co';
+const SB_KEY='sb_publishable_MUD7jY3lIHawonBnnwWEHw_5iSIbCPE';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+
+let allTickets=[];
+let myListings=[];
+let myOrders=[];
+let currentUser=null;
+let typeFilter='all';
+let orderTicket=null;
+let orderQty=1;
+
+// ── SHOWS (从后台数据库动态加载) ──
+let SHOW_MAP={};
+let ORIG_PRICES={};
+
+async function loadShowCatalog(){
+  // 尝试从 shows 表加载（管理后台可配置）
+  const{data:shows}=await sb.from('shows').select('*').eq('active',true).order('date',{ascending:true});
+  if(shows&&shows.length){
+    const artistSet=new Set();
+    shows.forEach(s=>{
+      artistSet.add(s.artist);
+      if(!SHOW_MAP[s.artist])SHOW_MAP[s.artist]=[];
+      SHOW_MAP[s.artist].push({
+        id:s.id,label:s.label||s.title,city:s.city,
+        dates:Array.isArray(s.dates)?s.dates:(s.date?[s.date]:[]),
+        title:s.title,img:s.img||'',orig_prices:s.orig_prices||[]
+      });
+      if(s.orig_prices&&s.orig_prices.length){ORIG_PRICES[s.title]=s.orig_prices}
+    });
+    const sel=document.getElementById('f-artist');
+    sel.innerHTML='<option value="">-- 请选择艺人 --</option>';
+    artistSet.forEach(a=>{const o=document.createElement('option');o.textContent=a;sel.appendChild(o)});
+  }else{
+    // fallback 静态数据（如果 shows 表不存在）
+    initStaticShows();
+  }
+}
+
+function initStaticShows(){
+  SHOW_MAP={
+    '周杰伦':[
+      {label:'嘉年华II 南宁站',city:'南宁',dates:['2026-04-17','2026-04-18','2026-04-19'],title:'嘉年华II世界巡回演唱会 南宁站',img:''},
+      {label:'嘉年华II 杭州站',city:'杭州',dates:['2026-04-03','2026-04-04','2026-04-05'],title:'嘉年华II世界巡回演唱会 杭州站',img:''},
+    ],
+    '薛之谦':[
+      {label:'万兽之王 广州站',city:'广州',dates:['2026-03-20','2026-03-21','2026-03-22','2026-03-27','2026-03-28','2026-03-29','2026-04-03','2026-04-04','2026-04-05'],title:'万兽之王巡回演唱会 广州站',img:''},
+      {label:'万兽之王 长沙站',city:'长沙',dates:['2026-04-10','2026-04-11','2026-04-12','2026-04-17','2026-04-18','2026-04-19'],title:'万兽之王巡回演唱会 长沙站',img:''},
+      {label:'万兽之王 青岛站',city:'青岛',dates:['2026-05-08','2026-05-09','2026-05-10','2026-05-15','2026-05-16','2026-05-17'],title:'万兽之王巡回演唱会 青岛站',img:''},
+      {label:'万兽之王 太原站',city:'太原',dates:['2026-04-24','2026-04-25','2026-04-26','2026-05-01','2026-05-02','2026-05-03'],title:'万兽之王巡回演唱会 太原站',img:''},
+    ],
+    '谢霆锋':[
+      {label:'进化演唱会 深圳站',city:'深圳',dates:['2026-03-20','2026-03-21','2026-03-22'],title:'进化演唱会 深圳站',img:''},
+      {label:'进化演唱会 武汉站',city:'武汉',dates:['2026-04-11','2026-04-12'],title:'进化演唱会 武汉站',img:''},
+      {label:'进化演唱会 北京站',city:'北京',dates:['2026-05-30','2026-05-31'],title:'进化演唱会 北京站',img:''},
+      {label:'进化演唱会 成都站',city:'成都',dates:['2026-05-02','2026-05-03'],title:'进化演唱会 成都站',img:''},
+    ],
+    '凤凰传奇':[
+      {label:'吉祥如意 厦门站',city:'厦门',dates:['2026-03-27','2026-03-28','2026-03-29'],title:'吉祥如意演唱会 厦门站',img:''},
+      {label:'吉祥如意 郑州站',city:'郑州',dates:['2026-04-10','2026-04-11','2026-04-12'],title:'吉祥如意演唱会 郑州站',img:''},
+      {label:'吉祥如意 深圳站',city:'深圳',dates:['2026-04-24','2026-04-25','2026-04-26','2026-05-02','2026-05-03','2026-05-04'],title:'吉祥如意演唱会 深圳站',img:''},
+    ],
+    '张杰':[
+      {label:'未·LIVE 开往1982 北京站',city:'北京',dates:['2026-03-27','2026-03-28','2026-03-29','2026-04-02','2026-04-03','2026-04-04'],title:'未·LIVE 开往1982 北京站',img:''},
+    ],
+    'EXO':[
+      {label:'EXhOrizon 澳门站',city:'澳门',dates:['2026-05-22','2026-05-23'],title:'EXO PLANET #6 EXhOrizon 澳门站',img:''},
+    ],
+  };
+  ORIG_PRICES={
+    '嘉年华II世界巡回演唱会 南宁站':[580,780,1080,1380,1880,2080,2380],
+    '嘉年华II世界巡回演唱会 杭州站':[780,1080,1380,1880,2080,2380],
+    '万兽之王巡回演唱会 广州站':[317,517,717,917,1317,1517,1717],
+    '万兽之王巡回演唱会 长沙站':[317,517,717,917,1317,1517,1717],
+    '万兽之王巡回演唱会 青岛站':[317,517,717,917,1317,1517,1717],
+    '万兽之王巡回演唱会 太原站':[317,517,717,917,1317,1517,1717],
+    '进化演唱会 深圳站':[480,680,980,1280,1580,1980],
+    '进化演唱会 武汉站':[380,680,880,980,1280,1680],
+    '进化演唱会 北京站':[480,780,1080,1380,1680,1980],
+    '进化演唱会 成都站':[480,680,980,1280,1580,1980],
+    '吉祥如意演唱会 厦门站':[280,380,480,580,680,780],
+    '吉祥如意演唱会 郑州站':[280,380,480,580,680,780],
+    '吉祥如意演唱会 深圳站':[280,380,480,580,680,780],
+    '未·LIVE 开往1982 北京站':[480,580,680,780,880,1080,1280],
+    'EXO PLANET #6 EXhOrizon 澳门站':[688,888,1088,1388,1888],
+  };
+  const sel=document.getElementById('f-artist');
+  sel.innerHTML='<option value="">-- 请选择艺人 --</option>';
+  Object.keys(SHOW_MAP).forEach(a=>{const o=document.createElement('option');o.textContent=a;sel.appendChild(o)});
+}
+
+async function getAllListings(){
+  const{data}=await sb.from('listings').select('*').eq('status','live');
+  return data||[];
+}
+
+// ── AUTH ──
+function openAuth(tab){document.getElementById('auth-overlay').classList.add('show');switchAuthTab(tab)}
+function closeAuth(){document.getElementById('auth-overlay').classList.remove('show')}
+function switchAuthTab(t){
+  document.getElementById('auth-login').style.display=t==='login'?'block':'none';
+  document.getElementById('auth-reg').style.display=t==='reg'?'block':'none';
+  document.getElementById('atab-login').classList.toggle('active',t==='login');
+  document.getElementById('atab-reg').classList.toggle('active',t==='reg');
+}
+async function doLogin(){
+  const acc=document.getElementById('l-account').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  let ok=true;
+  if(!acc){show('l-err','请输入账号');ok=false}else hide('l-err');
+  if(!pass){show('l-perr','请输入密码');ok=false}else hide('l-perr');
+  if(!ok)return;
+  const{data,error}=await sb.from('users').select('*').eq('account',acc).eq('pass',pass).single();
+  if(error||!data){show('l-err','账号或密码错误');return}
+  loginAs(data);closeAuth();
+}
+async function doRegister(){
+  const name=document.getElementById('r-name').value.trim()||'票友';
+  const acc=document.getElementById('r-account').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  let ok=true;
+  if(!acc){show('r-aerr','请填写账号');ok=false}else hide('r-aerr');
+  if(pass.length<6){show('r-perr','密码至少6位');ok=false}else hide('r-perr');
+  if(!ok)return;
+  const{data:exists}=await sb.from('users').select('id').eq('account',acc).single();
+  if(exists){show('r-aerr','该账号已注册');return}
+  const{data,error}=await sb.from('users').insert({name,account:acc,pass}).select().single();
+  if(error){show('r-aerr','注册失败：'+error.message);return}
+  loginAs(data);closeAuth();
+}
+async function loginAs(u){
+  currentUser=u;
+  document.getElementById('nav-guest').style.display='none';
+  document.getElementById('nav-user').style.display='flex';
+  document.getElementById('nav-avatar').textContent=u.name.charAt(0);
+  document.getElementById('nav-sell-btn').style.display='';
+  document.getElementById('tab-profile').style.display='';
+  const[{data:listings},{data:orders}]=await Promise.all([
+    sb.from('listings').select('*').eq('user_id',u.id).order('created_at',{ascending:false}),
+    sb.from('orders').select('*').eq('user_id',u.id).order('created_at',{ascending:false})
+  ]);
+  myListings=listings||[];
+  myOrders=orders||[];
+  renderProfile();
+}
+function doLogout(){
+  currentUser=null;myListings=[];myOrders=[];
+  document.getElementById('nav-guest').style.display='flex';
+  document.getElementById('nav-user').style.display='none';
+  document.getElementById('nav-sell-btn').style.display='none';
+  document.getElementById('tab-profile').style.display='none';
+  closeDropdown();switchTab('home');
+}
+function toggleDropdown(){document.getElementById('user-dropdown').classList.toggle('show')}
+function closeDropdown(){document.getElementById('user-dropdown').classList.remove('show')}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.user-menu'))closeDropdown();
+  if(e.target.classList.contains('overlay')){
+    document.querySelectorAll('.overlay.show').forEach(o=>o.classList.remove('show'));
+  }
+});
+
+// ── TABS ──
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const t=document.getElementById('tab-'+name);if(t)t.classList.add('active');
+  const b=document.getElementById('bn-'+name);if(b)b.classList.add('active');
+  window.scrollTo(0,0);
+  if(name==='my')renderMyListings();
+  if(name==='orders')renderMyOrders();
+  if(name==='profile')renderProfile();
+}
+function needLogin(name){
+  if(!currentUser){openAuth('login');return}
+  switchTab(name);
+}
+
+// ── RENDER TICKETS ──
+const EMOJI_MAP={'周杰伦':'🎸','薛之谦':'🎤','谢霆锋':'🥊','凤凰传奇':'🌟','张杰':'🎵','EXO':'💫'};
+// 演出标题 → 海报图路径映射（和原来 SHOW_CATALOG 保持一致）
+const IMG_MAP={
+  '嘉年华II世界巡回演唱会 南宁站':'img/jay_nanning.jpg',
+  '嘉年华II世界巡回演唱会 杭州站':'img/jay_hangzhou.jpg',
+  '万兽之王巡回演唱会 广州站':'img/xue_guangzhou.jpg',
+  '万兽之王巡回演唱会 长沙站':'img/xue_changsha.jpg',
+  '万兽之王巡回演唱会 青岛站':'img/xue_qingdao.jpg',
+  '万兽之王巡回演唱会 太原站':'img/xue_taiyuan.jpg',
+  '进化演唱会 深圳站':'img/nic_shenzhen.jpg',
+  '进化演唱会 武汉站':'img/nic_wuhan.jpg',
+  '进化演唱会 北京站':'img/nic_beijing.jpg',
+  '进化演唱会 成都站':'img/nic_chengdu.jpg',
+  '吉祥如意演唱会 厦门站':'img/fhcq_xiamen.jpg',
+  '吉祥如意演唱会 郑州站':'img/fhcq_zhengzhou.jpg',
+  '吉祥如意演唱会 深圳站':'img/fhcq_shenzhen.jpg',
+  '未·LIVE 开往1982 北京站':'img/zhangjie_beijing.jpg',
+  'EXO PLANET #6 EXhOrizon 澳门站':'img/exo_macau.jpg',
+};
+function renderTickets(){
+  const kw=(document.getElementById('search-kw').value||'').toLowerCase();
+  const city=document.getElementById('filter-city').value;
+  const sort=document.getElementById('filter-sort').value;
+  let list=allTickets.filter(t=>{
+    if(typeFilter==='hot'&&!t.hot)return false;
+    if(typeFilter!=='all'&&typeFilter!=='hot'&&t.type!==typeFilter)return false;
+    if(city&&t.city!==city)return false;
+    if(kw&&!(t.artist.toLowerCase().includes(kw)||t.title.toLowerCase().includes(kw)||t.city.toLowerCase().includes(kw)))return false;
+    return true;
+  });
+  if(sort==='price-asc')list.sort((a,b)=>a.price-b.price);
+  else if(sort==='price-desc')list.sort((a,b)=>b.price-a.price);
+  else if(sort==='date-asc')list.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  // group by title
+  const grouped={};
+  list.forEach(t=>{
+    if(!grouped[t.title])grouped[t.title]={...t,count:0,minPrice:t.price};
+    grouped[t.title].count++;
+    if(t.price<grouped[t.title].minPrice)grouped[t.title].minPrice=t.price;
+  });
+  const groups=Object.values(grouped);
+  document.getElementById('result-count').textContent=groups.length?`共 ${groups.length} 场演出`:'';
+  document.getElementById('no-result').style.display=groups.length?'none':'block';
+  const grid=document.getElementById('ticket-grid');
+  grid.innerHTML=groups.map(g=>{
+    const emoji=EMOJI_MAP[g.artist]||'🎫';
+    const imgSrc=g.img||IMG_MAP[g.title]||'';
+    const badge=g.hot?'<span class="card-badge badge-hot">🔥 抢手</span>':g.rare?'<span class="card-badge badge-rare">💎 稀有</span>':'';
+    const imgHtml=imgSrc
+      ?`<img src="${imgSrc}" alt="${g.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+         <div class="card-img-fallback" style="display:none"><span class="card-emoji">${emoji}</span></div>`
+      :`<div class="card-img-fallback"><span class="card-emoji">${emoji}</span></div>`;
+    // 从 title 里提取简短场次信息
+    const shortTitle=g.title.replace(g.artist,'').trim().replace(/^·?\s*/,'');
+    return`<div class="ticket-card" onclick="openOrderByShow(encodeURIComponent('${g.title}'))">
+      <div class="card-img">
+        ${imgHtml}
+        <div class="card-img-overlay"></div>
+        <div class="card-img-bottom">
+          <div class="card-artist-over">${g.artist}</div>
+          <div class="card-city-over"><i class="fa fa-map-marker-alt"></i>${g.city} · ${g.date}</div>
+        </div>
+        ${badge}
+      </div>
+      <div class="card-body">
+        <div class="card-body-left">
+          <div class="card-title-row">${shortTitle}</div>
+          <div class="card-meta-row">
+            <span class="card-meta-chip"><i class="fa fa-ticket-alt"></i>${g.count}个票源</span>
+            ${g.orig?`<span class="card-meta-chip"><i class="fa fa-tag"></i>面价¥${g.orig.toLocaleString()}</span>`:''}
+          </div>
+        </div>
+        <div class="card-body-right">
+          <div class="card-price">¥${g.minPrice.toLocaleString()}</div>
+          <div class="card-price-sub">起 · 零服务费</div>
+          <button class="btn-buy" onclick="event.stopPropagation();openOrderByShow(encodeURIComponent('${g.title}'))">立即选票</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  // 更新 hero 统计
+  document.getElementById('stat-live').textContent=allTickets.length;
+}
+function doSearch(){renderTickets()}
+function setTypeFilter(t,el){
+  typeFilter=t;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderTickets();
+}
+
+// ── ORDER ──
+let currentSourceTickets=[];
+let currentSortMode='price';
+
+function openOrderByShow(encodedTitle){
+  if(!currentUser){openAuth('login');return}
+  const title=decodeURIComponent(encodedTitle);
+  const tickets=allTickets.filter(t=>t.title===title);
+  if(!tickets.length)return;
+  currentSourceTickets=tickets;
+  currentSortMode='price';
+  // 重置排序按钮
+  document.querySelectorAll('.order-sort-btn').forEach((b,i)=>{b.classList.toggle('active',i===0)});
+  // 填写标题区域
+  const sample=tickets[0];
+  document.getElementById('oss-title').textContent=title;
+  const subEl=document.getElementById('oss-sub');
+  subEl.innerHTML=`<span>${sample.city}</span><span class="dot"></span><span>${sample.date}</span><span class="dot"></span><span style="color:var(--gold)">${tickets.length}个票源</span>`;
+  renderSources('price');
+  document.getElementById('order-select-view').style.display='';
+  document.getElementById('order-form-view').style.display='none';
+  document.getElementById('order-success-view').classList.remove('show');
+  document.getElementById('order-overlay').classList.add('show');
+}
+
+function sortSources(mode,btn){
+  currentSortMode=mode;
+  document.querySelectorAll('.order-sort-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSources(mode);
+}
+
+function renderSources(mode){
+  const tickets=[...currentSourceTickets];
+  const list=document.getElementById('order-show-list');
+  const TYPE_ICON={'录信息':'🎫','邀请函秒发':'⚡','邀请函代录':'📋'};
+  
+  if(mode==='price'){
+    // 按价格排序，全部平铺
+    tickets.sort((a,b)=>a.price-b.price);
+    const minP=tickets[0].price;
+    list.innerHTML=tickets.map((l,i)=>{
+      const isCheapest=l.price===minP;
+      const typeIcon=TYPE_ICON[l.ticket_type]||'🎫';
+      const tags=[];
+      if(isCheapest&&i===0) tags.push('<span class="osi-tag green">最低价</span>');
+      if(l.ticket_type==='邀请函秒发') tags.push('<span class="osi-tag green">秒发</span>');
+      if(l.note&&l.note.includes('急出')) tags.push('<span class="osi-tag orange">急出</span>');
+      if(l.note&&l.note.includes('连座')) tags.push('<span class="osi-tag">连座</span>');
+      return`<div class="order-tier" style="border-bottom:0.5px solid var(--border)">
+        <div class="order-source-item" style="margin:10px 16px;margin-bottom:${i===tickets.length-1?'10px':'0'}" onclick="selectTicket(${l.id})">
+          <div class="osi-icon">${typeIcon}</div>
+          <div class="osi-body">
+            <div class="osi-type">${l.ticket_type||'录信息'}</div>
+            ${tags.length?`<div class="osi-tags">${tags.join('')}</div>`:''}
+            ${l.note?`<div class="osi-seller">${l.note}</div>`:'<div class="osi-seller">面价 ¥'+( l.orig?l.orig.toLocaleString():'-')+'</div>'}
+          </div>
+          <div class="osi-right">
+            <div class="osi-price-big">¥${l.price.toLocaleString()}</div>
+            <div class="osi-qty">剩余 ${l.qty} 张</div>
+            <button class="osi-btn" onclick="event.stopPropagation();selectTicket(${l.id})">选这个</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    // 按面价分组
+    const groups={};
+    tickets.forEach(l=>{
+      const key=l.orig||0;
+      if(!groups[key])groups[key]=[];
+      groups[key].push(l);
+    });
+    const sortedKeys=Object.keys(groups).sort((a,b)=>Number(a)-Number(b));
+    list.innerHTML=sortedKeys.map(orig=>{
+      const grpTickets=groups[orig].sort((a,b)=>a.price-b.price);
+      const minGrpP=grpTickets[0].price;
+      const ratio=orig>0?Math.round(minGrpP/orig*100):null;
+      const badgeHtml=ratio?ratio<=100?`<span class="order-tier-badge badge-cheap">${ratio}折起</span>`:`<span class="order-tier-badge badge-mid">溢价${ratio-100}%</span>`:'';
+      const tierId='tier-'+orig;
+      return`<div class="order-tier">
+        <div class="order-tier-header" onclick="toggleTier('${tierId}')">
+          <div class="order-tier-left">
+            <div>
+              <div class="order-tier-price">¥${minGrpP.toLocaleString()} <span style="font-size:12px;color:var(--text2);font-weight:400;font-family:var(--sans)">起</span></div>
+              ${orig>0?`<div class="order-tier-orig">面价 ¥${Number(orig).toLocaleString()}</div>`:''}
+            </div>
+            ${badgeHtml}
+          </div>
+          <div class="order-tier-right">
+            <span class="order-tier-count">${grpTickets.length}个票源</span>
+            <i class="fa fa-chevron-down order-tier-arrow open" id="arr-${tierId}"></i>
+          </div>
+        </div>
+        <div class="order-tier-body" id="${tierId}">
+          ${grpTickets.map(l=>{
+            const typeIcon=TYPE_ICON[l.ticket_type]||'🎫';
+            const tags=[];
+            if(l.price===minGrpP) tags.push('<span class="osi-tag green">本档最低</span>');
+            if(l.ticket_type==='邀请函秒发') tags.push('<span class="osi-tag green">秒发</span>');
+            if(l.note&&l.note.includes('急出')) tags.push('<span class="osi-tag orange">急出</span>');
+            if(l.note&&l.note.includes('连座')) tags.push('<span class="osi-tag">连座</span>');
+            return`<div class="order-source-item" onclick="selectTicket(${l.id})">
+              <div class="osi-icon">${typeIcon}</div>
+              <div class="osi-body">
+                <div class="osi-type">${l.ticket_type||'录信息'}</div>
+                ${tags.length?`<div class="osi-tags">${tags.join('')}</div>`:''}
+                ${l.note?`<div class="osi-seller">${l.note}</div>`:''}
+              </div>
+              <div class="osi-right">
+                <div class="osi-price-big">¥${l.price.toLocaleString()}</div>
+                <div class="osi-qty">剩余 ${l.qty} 张</div>
+                <button class="osi-btn" onclick="event.stopPropagation();selectTicket(${l.id})">选这个</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function toggleTier(id){
+  const body=document.getElementById(id);
+  const arr=document.getElementById('arr-'+id);
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'':'none';
+  arr.classList.toggle('open',hidden);
+}
+function selectTicket(id){
+  const t=allTickets.find(x=>x.id===id);
+  if(!t)return;
+  orderTicket=t;orderQty=1;
+  document.getElementById('o-name').textContent=t.title;
+  document.getElementById('o-meta').textContent=`${t.date} · ${t.city}\n${t.ticket_type||'录信息'} · 剩余${t.qty}张`;
+  document.getElementById('o-remark').textContent=`${t.artist} ${t.city}站 ${t.date}`;
+  updateOrderPrice();
+  document.getElementById('order-select-view').style.display='none';
+  document.getElementById('order-form-view').style.display='';
+}
+function closeOrder(){document.getElementById('order-overlay').classList.remove('show')}
+function changeQty(d){orderQty=Math.max(1,Math.min(orderTicket.qty,orderQty+d));updateOrderPrice()}
+function updateOrderPrice(){
+  const t=orderTicket,total=t.price*orderQty;
+  document.getElementById('o-qty').textContent=orderQty;
+  document.getElementById('o-qty-show').textContent='×'+orderQty;
+  document.getElementById('o-unit-price').textContent='¥'+t.price.toLocaleString();
+  document.getElementById('o-total').textContent='¥'+total.toLocaleString();
+}
+function updateFileName(input){
+  document.getElementById('o-file-name').textContent=input.files[0]?input.files[0].name:'';
+}
+async function doPay(){
+  const t=orderTicket,total=t.price*orderQty;
+  const txid=document.getElementById('o-txid').value.trim();
+  const fileInput=document.getElementById('o-screenshot');
+  const file=fileInput.files[0];
+  let ok=true;
+  if(!file){document.getElementById('o-screenshot-err').style.display='block';ok=false}else document.getElementById('o-screenshot-err').style.display='none';
+  if(!txid||!/^\d{12,}$/.test(txid)){document.getElementById('o-txid-err').style.display='block';ok=false}else document.getElementById('o-txid-err').style.display='none';
+  if(!ok)return;
+  const filename=`order_${Date.now()}_${currentUser.id}.${file.name.split('.').pop()}`;
+  const{error:uploadErr}=await sb.storage.from('payments').upload(filename,file);
+  if(uploadErr){alert('截图上传失败，请重试');return}
+  const screenshotUrl=`${SB_URL}/storage/v1/object/public/payments/${filename}`;
+  const{data,error}=await sb.from('orders').insert({
+    user_id:currentUser.id,listing_id:t.id,
+    artist:t.artist,title:t.title,date:t.date,city:t.city,
+    zone:t.zone||'',qty:orderQty,price:t.price,total,
+    status:'待审核',pay_screenshot:screenshotUrl,pay_txid:txid,pay_status:'待审核'
+  }).select().single();
+  if(error){alert('提交失败，请重试');return}
+  myOrders.unshift(data);
+  document.getElementById('o-orderid').textContent='TJ'+data.id;
+  document.getElementById('o-txid').value='';fileInput.value='';
+  document.getElementById('o-file-name').textContent='';
+  document.getElementById('order-form-view').style.display='none';
+  document.getElementById('order-success-view').classList.add('show');
+}
+
+// ── SELL ──
+function updateFee(){
+  const price=parseFloat(document.getElementById('f-price').value)||0;
+  const fp=document.getElementById('fee-preview');
+  if(price>0){
+    document.getElementById('fee-net').textContent='¥'+Math.round(price).toLocaleString();
+    fp.classList.add('show');
+  }else fp.classList.remove('show');
+}
+function updateShowOptions(){
+  const artist=document.getElementById('f-artist').value;
+  const sel=document.getElementById('f-show');
+  sel.innerHTML='<option value="">-- 请选择场次 --</option>';
+  document.getElementById('f-city').value='';
+  document.getElementById('f-date').innerHTML='<option value="">-- 请先选择场次 --</option>';
+  document.getElementById('f-orig').innerHTML='<option value="">-- 请先选择场次 --</option>';
+  document.getElementById('min-price-hint').style.display='none';
+  if(!artist||!SHOW_MAP[artist])return;
+  SHOW_MAP[artist].forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s.label;sel.appendChild(o)});
+}
+async function updateCityDate(){
+  const artist=document.getElementById('f-artist').value;
+  const idx=document.getElementById('f-show').value;
+  if(!artist||idx==='')return;
+  const s=SHOW_MAP[artist][idx];
+  document.getElementById('f-city').value=s.city;
+  const dateSel=document.getElementById('f-date');
+  dateSel.innerHTML='<option value="">-- 选择演出日期 --</option>';
+  s.dates.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;dateSel.appendChild(o)});
+  if(s.dates.length===1)dateSel.value=s.dates[0];
+  const origSel=document.getElementById('f-orig');
+  origSel.innerHTML='<option value="">-- 选择面价 --</option>';
+  (s.orig_prices||ORIG_PRICES[s.title]||[]).forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent='¥'+p.toLocaleString();origSel.appendChild(o)});
+  document.getElementById('min-price-hint').style.display='none';
+}
+async function updateMinPriceHint(){
+  const artist=document.getElementById('f-artist').value;
+  const idx=document.getElementById('f-show').value;
+  const orig=document.getElementById('f-orig').value;
+  const hint=document.getElementById('min-price-hint');
+  if(!artist||idx===''||!orig){hint.style.display='none';return}
+  const s=SHOW_MAP[artist][idx];
+  const{data:listings}=await sb.from('listings').select('price').eq('title',s.title).eq('orig',orig).eq('status','live');
+  if(listings&&listings.length){
+    const minPrice=Math.min(...listings.map(l=>l.price));
+    hint.textContent='当前最低 ¥'+minPrice.toLocaleString();
+    hint.style.display='';
+  }else{
+    hint.style.display='none';
+  }
+}
+let pendingListing=null;
+function submitListing(){
+  const artist=document.getElementById('f-artist').value;
+  const idx=document.getElementById('f-show').value;
+  const price=parseFloat(document.getElementById('f-price').value);
+  const orig=parseFloat(document.getElementById('f-orig').value)||price;
+  const date=document.getElementById('f-date').value;
+  if(!artist||idx===''){alert('请选择艺人和场次');return}
+  if(!date){alert('请选择演出日期');return}
+  if(!price){alert('请填写出售价格');return}
+  const s=SHOW_MAP[artist][idx];
+  const qty=parseInt(document.getElementById('f-qty').value);
+  const ticket_type=document.getElementById('f-tickettype').value;
+  const note=document.getElementById('f-note').value;
+  const deposit=Math.ceil(price*qty*0.5);
+  pendingListing={artist,title:s.title,date,city:s.city,qty,price,orig,status:'live',img:s.img,ticket_type,note,user_id:currentUser.id};
+  document.getElementById('dep-price').textContent='¥'+price.toLocaleString()+' / 张';
+  document.getElementById('dep-qty').textContent=qty+'张';
+  document.getElementById('dep-total').textContent='¥'+(price*qty).toLocaleString();
+  document.getElementById('dep-amount').textContent='¥'+deposit.toLocaleString();
+  document.getElementById('dep-remark').textContent=artist+' '+s.city+'站 保证金';
+  document.getElementById('deposit-overlay').classList.add('show');
+}
+async function confirmDeposit(){
+  if(!pendingListing)return;
+  const txid=document.getElementById('dep-txid').value.trim();
+  if(!txid||!/^\d{12,}$/.test(txid)){document.getElementById('dep-txid-err').style.display='block';return}
+  document.getElementById('dep-txid-err').style.display='none';
+  const{data,error}=await sb.from('listings').insert({...pendingListing,txid,status:'pending'}).select().single();
+  if(error){alert('上架失败，请重试');return}
+  myListings.unshift(data);
+  document.getElementById('deposit-overlay').classList.remove('show');
+  document.getElementById('dep-txid').value='';
+  const toast=document.getElementById('sell-toast');
+  toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),5000);
+  // reset form
+  document.getElementById('f-artist').value='';
+  document.getElementById('f-show').innerHTML='<option value="">-- 请先选择艺人 --</option>';
+  document.getElementById('f-city').value='';
+  document.getElementById('f-date').innerHTML='<option value="">-- 请先选择场次 --</option>';
+  document.getElementById('f-price').value='';
+  document.getElementById('f-orig').innerHTML='<option value="">-- 请先选择场次 --</option>';
+  document.getElementById('f-note').value='';
+  document.getElementById('min-price-hint').style.display='none';
+  document.getElementById('fee-preview').classList.remove('show');
+  pendingListing=null;
+  renderTickets();
+}
+function copyDepositNo(){
+  const info='开户行：中国工商银行\n户名：肖宏涛\n卡号：6222034000061712927';
+  const btn=document.getElementById('dep-copy-btn');
+  navigator.clipboard.writeText(info).catch(()=>{const el=document.createElement('textarea');el.value=info;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el)});
+  btn.innerHTML='<i class="fa fa-check" style="margin-right:5px"></i>已复制！';btn.style.background='var(--green)';
+  setTimeout(()=>{btn.innerHTML='<i class="fa fa-copy" style="margin-right:5px"></i>一键复制账户信息';btn.style.background=''},2000);
+}
+function copyBankNo(){
+  const info='开户行：中国工商银行\n户名：肖宏涛\n卡号：6222034000061712927';
+  const btn=document.getElementById('copy-btn');
+  navigator.clipboard.writeText(info).catch(()=>{const el=document.createElement('textarea');el.value=info;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el)});
+  btn.innerHTML='<i class="fa fa-check" style="margin-right:5px"></i>已复制！';btn.style.background='var(--green)';
+  setTimeout(()=>{btn.innerHTML='<i class="fa fa-copy" style="margin-right:5px"></i>一键复制账户信息';btn.style.background=''},2000);
+}
+
+// ── MY LISTINGS ──
+function renderMyListings(){
+  const el=document.getElementById('my-listings');
+  if(!myListings.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-size:14px"><i class="fa fa-ticket-alt" style="font-size:28px;margin-bottom:10px;display:block"></i>暂无出票记录</div>';return}
+  const sm={live:['上架中','pill-live'],sold:['已售出','pill-sold'],pending:['审核中','pill-pending'],rejected:['已拒绝','pill-sold']};
+  el.innerHTML=myListings.map(l=>{
+    const[txt,cls]=sm[l.status]||['上架中','pill-live'];
+    // 已售出的显示出票凭证上传区
+    const proofHtml=l.status==='sold'?`
+      <div class="ticket-proof-box">
+        <div class="ticket-proof-title"><i class="fa fa-upload"></i>出票凭证${l.ticket_proof?'<span class="proof-notify-badge"><i class="fa fa-check"></i>已发票</span>':''}</div>
+        ${l.ticket_proof
+          ?`<img src="${l.ticket_proof}" class="proof-img" onclick="window.open('${l.ticket_proof}','_blank')" alt="出票凭证"/>`
+          :`<div class="proof-upload-area" id="proof-area-${l.id}">
+              <input type="file" accept="image/*" onchange="previewProof(${l.id},this)"/>
+              <i class="fa fa-image"></i>
+              <p>点击上传电子票/入场码截图</p>
+            </div>
+            <div id="proof-preview-${l.id}" style="display:none;margin-top:8px">
+              <img id="proof-img-preview-${l.id}" style="width:100%;max-width:260px;border-radius:8px;border:0.5px solid var(--border-md)"/>
+            </div>
+            <button class="btn-upload-proof" id="proof-btn-${l.id}" onclick="uploadProof(${l.id})" disabled>
+              <i class="fa fa-paper-plane"></i>发送给买家
+            </button>`
+        }
+      </div>`:''
+    return`<div class="list-row" style="flex-wrap:wrap;align-items:flex-start">
+      <div class="list-icon" style="margin-top:2px">🎫</div>
+      <div class="list-main">
+        <div class="list-name">${l.artist} · ${l.title}</div>
+        <div class="list-meta">${l.date} · ${l.city} · ${l.qty}张</div>
+        ${proofHtml}
+      </div>
+      <div class="list-right"><div class="list-price">¥${l.price.toLocaleString()}</div><span class="pill ${cls}">${txt}</span></div>
+    </div>`;
+  }).join('');
+}
+
+let proofFiles={};
+function previewProof(listingId, input){
+  const file=input.files[0];
+  if(!file)return;
+  proofFiles[listingId]=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const preview=document.getElementById('proof-img-preview-'+listingId);
+    if(preview){preview.src=e.target.result;preview.parentElement.style.display='';}
+    const btn=document.getElementById('proof-btn-'+listingId);
+    if(btn){btn.disabled=false;}
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadProof(listingId){
+  const file=proofFiles[listingId];
+  if(!file){alert('请先选择图片');return}
+  const btn=document.getElementById('proof-btn-'+listingId);
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fa fa-spinner fa-spin"></i> 上传中...';}
+  const filename=`proof_${listingId}_${Date.now()}.${file.name.split('.').pop()}`;
+  const{error:upErr}=await sb.storage.from('payments').upload(filename,file);
+  if(upErr){
+    alert('上传失败，请重试');
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fa fa-paper-plane"></i>发送给买家';}
+    return;
+  }
+  const proofUrl=`${SB_URL}/storage/v1/object/public/payments/${filename}`;
+  // 更新 listing 的 ticket_proof 字段
+  await sb.from('listings').update({ticket_proof:proofUrl,status:'sold'}).eq('id',listingId);
+  // 找到对应 order 更新凭证并改状态为已发票
+  const{data:orders}=await sb.from('orders').select('id').eq('listing_id',listingId).eq('status','待发票');
+  if(orders&&orders.length){
+    for(const o of orders){
+      await sb.from('orders').update({ticket_proof:proofUrl,status:'已发票'}).eq('id',o.id);
+    }
+  }
+  // 刷新本地数据
+  const idx=myListings.findIndex(l=>l.id===listingId);
+  if(idx>-1)myListings[idx].ticket_proof=proofUrl;
+  renderMyListings();
+  // 提示
+  const toast=document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a4a2a;border:0.5px solid var(--green-border);color:var(--green);padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:999;white-space:nowrap';
+  toast.textContent='✅ 凭证已发送给买家！';
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
+}
+async function renderMyOrders(){
+  const el=document.getElementById('my-orders');
+  if(!myOrders.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-size:14px"><i class="fa fa-shopping-bag" style="font-size:28px;margin-bottom:10px;display:block"></i>暂无订单记录</div>';return}
+  // 重新拉取最新订单数据（获取ticket_proof字段）
+  const{data:freshOrders}=await sb.from('orders').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  if(freshOrders)myOrders=freshOrders;
+  const sm={'待发票':['待发票','pill-pending'],'已发票':['已发票','pill-live'],'已完成':['已完成','pill-sold'],'待审核':['待审核','pill-pending'],'已拒绝':['已拒绝','pill-sold']};
+  // 有新凭证的订单排前面
+  const hasNew=myOrders.some(o=>o.ticket_proof&&o.status==='已发票');
+  el.innerHTML=(hasNew?`<div class="new-ticket-banner">
+    <i class="fa fa-bell"></i>
+    <div class="new-ticket-banner-text">
+      <div class="new-ticket-banner-title">🎉 您有新的入场凭证！</div>
+      <div class="new-ticket-banner-sub">卖家已上传电子票，请查收</div>
+    </div>
+  </div>`:'') +
+  myOrders.map(o=>{
+    const[txt,cls]=sm[o.status]||['待审核','pill-pending'];
+    const isNew=o.ticket_proof&&o.status==='已发票';
+    const proofHtml=o.ticket_proof?`
+      <div class="ticket-proof-box" style="border-color:${isNew?'var(--green-border)':'var(--border)'}">
+        <div class="ticket-proof-title" style="color:${isNew?'var(--green)':'var(--text2)'}">
+          <i class="fa fa-${isNew?'bell':'ticket-alt'}"></i>${isNew?'🎉 入场凭证已到账！':'入场凭证'}
+        </div>
+        <img src="${o.ticket_proof}" class="proof-img" onclick="window.open('${o.ticket_proof}','_blank')" alt="入场凭证"/>
+        <p style="font-size:11px;color:var(--text2);margin-top:6px"><i class="fa fa-hand-pointer"></i> 点击图片可放大查看/保存</p>
+      </div>`:
+      (o.status==='待发票'?`<div style="margin-top:6px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="fa fa-clock" style="color:var(--gold)"></i>等待卖家上传入场凭证...</div>`:'')
+    return`<div class="list-row" style="flex-wrap:wrap;align-items:flex-start;${isNew?'background:rgba(61,186,111,0.03)':''}">
+      <div class="list-icon" style="margin-top:2px">${isNew?'🔔':'🎫'}</div>
+      <div class="list-main">
+        <div class="list-name">${o.artist} · ${o.title}</div>
+        <div class="list-meta">${o.date} · ${o.city} · ${o.qty}张 · ${new Date(o.created_at).toLocaleDateString('zh-CN')}</div>
+        ${proofHtml}
+      </div>
+      <div class="list-right"><div class="list-price">¥${o.total.toLocaleString()}</div><span class="pill ${cls}">${txt}</span></div>
+    </div>`;
+  }).join('');
+}
+let balanceVisible=true;
+
+async function renderProfile(){
+  if(!currentUser)return;
+  document.getElementById('p-avatar').textContent=currentUser.name.charAt(0);
+  document.getElementById('p-name').textContent=currentUser.name;
+  document.getElementById('p-account').textContent=currentUser.account;
+  document.getElementById('pi-name').textContent=currentUser.name;
+  document.getElementById('pi-account').textContent=currentUser.account;
+  document.getElementById('pi-date').textContent=new Date(currentUser.created_at).toLocaleDateString('zh-CN');
+  document.getElementById('s-listings').textContent=myListings.filter(l=>l.status==='live').length;
+  document.getElementById('s-orders').textContent=myOrders.length;
+  document.getElementById('s-sold').textContent=myListings.filter(l=>l.status==='sold').length;
+  // 余额
+  const balance=currentUser.balance||0;
+  const frozen=currentUser.balance_frozen||0;
+  updateBalanceDisplay(balance,frozen);
+  // 银行卡列表
+  await renderBankList();
+}
+
+function updateBalanceDisplay(balance,frozen){
+  const balEl=document.getElementById('p-balance');
+  const frozenEl=document.getElementById('p-frozen');
+  if(balanceVisible){
+    balEl.textContent=Number(balance).toFixed(2);
+    frozenEl.textContent='冻结中：¥'+Number(frozen).toFixed(2)+'（待结算）';
+  }else{
+    balEl.textContent='****';
+    frozenEl.textContent='冻结中：****';
+  }
+}
+
+function toggleBalanceVisible(){
+  balanceVisible=!balanceVisible;
+  const icon=document.getElementById('balance-eye-icon');
+  icon.className=balanceVisible?'fa fa-eye':'fa fa-eye-slash';
+  updateBalanceDisplay(currentUser.balance||0,currentUser.balance_frozen||0);
+}
+
+// ── 银行卡 ──
+let myBankCards=[];
+const BANK_ICONS={'中国工商银行':'🏦','中国农业银行':'🌾','中国银行':'🔴','中国建设银行':'🔵','交通银行':'🚢','招商银行':'🟤','中国邮政储蓄银行':'📮','浦发银行':'🟣','中信银行':'🔷','平安银行':'🛡️','兴业银行':'💙','民生银行':'🏛️'};
+
+async function renderBankList(){
+  const{data:cards}=await sb.from('bank_cards').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:true});
+  myBankCards=cards||[];
+  const wrap=document.getElementById('bank-list-wrap');
+  if(!myBankCards.length){
+    wrap.innerHTML='<div class="bank-empty"><i class="fa fa-credit-card"></i>暂未绑定银行卡<br><span style="font-size:11px">绑定后可申请提现</span></div>';
+    return;
+  }
+  wrap.innerHTML=myBankCards.map((c,i)=>`
+    <div class="bank-item">
+      <div class="bank-item-icon">${BANK_ICONS[c.bank_name]||'🏦'}</div>
+      <div class="bank-item-body">
+        <div class="bank-item-name">${c.bank_name}${i===0?'<span class="bank-item-default">默认</span>':''}</div>
+        <div class="bank-item-no">${c.holder_name} · ****${c.card_no.slice(-4)}</div>
+      </div>
+      <button class="bank-item-del" onclick="deleteBank(${c.id})" title="删除"><i class="fa fa-trash"></i></button>
+    </div>
+  `).join('');
+}
+
+function openBankModal(){
+  document.getElementById('b-name').value='';
+  document.getElementById('b-cardno').value='';
+  document.getElementById('b-bank').value='';
+  document.getElementById('b-err').style.display='none';
+  document.getElementById('bank-overlay').classList.add('show');
+}
+function closeBankModal(){document.getElementById('bank-overlay').classList.remove('show')}
+
+async function saveBank(){
+  const name=document.getElementById('b-name').value.trim();
+  const cardno=document.getElementById('b-cardno').value.replace(/\s/g,'');
+  const bank=document.getElementById('b-bank').value;
+  const errEl=document.getElementById('b-err');
+  if(!name){errEl.textContent='请输入持卡人姓名';errEl.style.display='block';return}
+  if(!cardno||cardno.length<16||!/^\d+$/.test(cardno)){errEl.textContent='请输入正确的银行卡号';errEl.style.display='block';return}
+  if(!bank){errEl.textContent='请选择开户银行';errEl.style.display='block';return}
+  errEl.style.display='none';
+  const{error}=await sb.from('bank_cards').insert({user_id:currentUser.id,holder_name:name,card_no:cardno,bank_name:bank});
+  if(error){
+    if(error.message.includes('does not exist')||error.code==='42P01'){
+      alert('请在 Supabase 中创建 bank_cards 表，详见说明文档');
+    }else{errEl.textContent='绑定失败，请重试';errEl.style.display='block';}
+    return;
+  }
+  closeBankModal();
+  renderBankList();
+}
+
+async function deleteBank(id){
+  if(!confirm('确认删除这张银行卡？'))return;
+  await sb.from('bank_cards').delete().eq('id',id).eq('user_id',currentUser.id);
+  renderBankList();
+}
+
+// ── 提现 ──
+function openWithdraw(){
+  const balance=currentUser.balance||0;
+  document.getElementById('wd-balance').textContent='¥'+Number(balance).toFixed(2);
+  document.getElementById('wd-amount').value='';
+  document.getElementById('wd-err').style.display='none';
+  // 展示默认银行卡
+  const bankSel=document.getElementById('wd-bank-select');
+  if(myBankCards.length){
+    const c=myBankCards[0];
+    bankSel.innerHTML=`<span style="font-size:13px;font-weight:700">${c.bank_name}</span> <span style="color:var(--text2);font-family:var(--mono)">****${c.card_no.slice(-4)}</span> <span style="color:var(--text2)">${c.holder_name}</span>`;
+  }else{
+    bankSel.innerHTML='<span style="color:var(--red)">暂未绑定银行卡，请先绑卡</span>';
+  }
+  document.getElementById('withdraw-overlay').classList.add('show');
+}
+
+async function submitWithdraw(){
+  const amount=parseFloat(document.getElementById('wd-amount').value);
+  const balance=currentUser.balance||0;
+  const errEl=document.getElementById('wd-err');
+  if(!myBankCards.length){errEl.textContent='请先绑定银行卡';errEl.style.display='block';return}
+  if(!amount||amount<10){errEl.textContent='最低提现金额为 ¥10';errEl.style.display='block';return}
+  if(amount>balance){errEl.textContent='提现金额不能超过可用余额';errEl.style.display='block';return}
+  errEl.style.display='none';
+  const card=myBankCards[0];
+  const{error}=await sb.from('withdrawals').insert({
+    user_id:currentUser.id,amount,
+    bank_name:card.bank_name,card_no:card.card_no,holder_name:card.holder_name,
+    status:'待处理'
+  });
+  if(error){
+    if(error.code==='42P01'){
+      alert('请在 Supabase 中创建 withdrawals 表，详见说明文档');
+    }else{errEl.textContent='提交失败，请重试';errEl.style.display='block';}
+    return;
+  }
+  document.getElementById('withdraw-overlay').classList.remove('show');
+  alert('✅ 提现申请已提交！工作日1-3天内到账。');
+}
+
+function show(id,msg){const el=document.getElementById(id);if(msg)el.textContent=msg;el.classList.add('show')}
+function hide(id){document.getElementById(id).classList.remove('show')}
+
+// ── 广告轮播 ──
+(function(){
+  const banners=document.querySelectorAll('#banner-carousel .banner');
+  if(!banners.length)return;
+  let cur=0;
+  setInterval(()=>{
+    banners[cur].style.display='none';
+    banners[cur].classList.remove('banner-active');
+    cur=(cur+1)%banners.length;
+    banners[cur].style.display='flex';
+    banners[cur].classList.add('banner-active');
+    banners[cur].style.animation='fadeIn .4s ease';
+  },4000);
+})();
+
+// ── INIT ──
+async function init(){
+  await loadShowCatalog();
+  const data=await getAllListings();
+  allTickets=data;
+  renderTickets();
+  // update user count
+  const{count}=await sb.from('users').select('*',{count:'exact',head:true});
+  if(count)document.getElementById('stat-users').textContent=count;
+}
+init();
+</script>
+</body>
+</html>
