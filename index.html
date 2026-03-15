@@ -879,19 +879,24 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
         <textarea class="form-textarea" id="f-note" placeholder="例：可小刀 · 急出 · 连座"></textarea>
       </div>
     </div>
-    <div class="form-card" style="border-color:var(--gold-border);background:rgba(212,168,71,0.04)">
-      <div class="form-card-title" style="color:var(--gold)">📋 营业性演出资格证（必填）</div>
-      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7">根据规定，出售演出票务需提供有效的营业性演出许可证或主办方授权书。平台将对证件进行审核，审核通过后门票方可上架展示。</p>
-      <div class="form-group">
-        <label class="form-label">上传证件照片</label>
-        <div class="upload-area" id="cert-upload-area">
-          <input type="file" id="f-cert" accept="image/*,.pdf" onchange="previewCert(this)"/>
-          <i class="fa fa-file-alt" style="font-size:22px;color:var(--text3);margin-bottom:5px;display:block"></i>
-          <p>点击上传营业性演出许可证 / 主办方授权书</p>
-          <p style="font-size:11px;color:var(--text3);margin-top:3px">支持 JPG / PNG / PDF，大小不超过10MB</p>
-          <div class="upload-name" id="f-cert-name" style="color:var(--gold)"></div>
+    <div class="form-card" id="cert-card" style="border-color:var(--gold-border);background:rgba(212,168,71,0.04)">
+      <div class="form-card-title" style="color:var(--gold)">📋 营业性演出资格证</div>
+      <div id="cert-verified-banner" style="display:none;background:rgba(40,167,69,0.1);border:0.5px solid rgba(40,167,69,0.3);border-radius:var(--r-md);padding:10px 12px;font-size:12px;color:var(--green)">
+        ✅ 已完成实名认证，资格证已提交审核，无需重复上传
+      </div>
+      <div id="cert-upload-section">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7">根据规定，出售演出票务需提供有效的营业性演出许可证或主办方授权书。</p>
+        <div class="form-group">
+          <label class="form-label">上传证件照片</label>
+          <div class="upload-area" id="cert-upload-area">
+            <input type="file" id="f-cert" accept="image/*,.pdf" onchange="previewCert(this)"/>
+            <i class="fa fa-file-alt" style="font-size:22px;color:var(--text3);margin-bottom:5px;display:block"></i>
+            <p>点击上传营业性演出许可证 / 主办方授权书</p>
+            <p style="font-size:11px;color:var(--text3);margin-top:3px">支持 JPG / PNG / PDF，大小不超过10MB</p>
+            <div class="upload-name" id="f-cert-name" style="color:var(--gold)"></div>
+          </div>
+          <div id="f-cert-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传营业性演出资格证</div>
         </div>
-        <div id="f-cert-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传营业性演出资格证</div>
       </div>
     </div>
     <button class="btn-submit" onclick="submitListing()" style="margin-bottom:16px">确认上架门票</button>
@@ -1185,14 +1190,40 @@ document.addEventListener('click',e=>{
 });
 
 // ── TABS ──
+async function refreshCertSection(){
+  if(!currentUser)return;
+  // 每次进入出票页都从DB取最新状态
+  const{data:u}=await sb.from('users').select('real_name,id_card,cert_url,cert_verified').eq('id',currentUser.id).single();
+  if(u){
+    currentUser.real_name=u.real_name;
+    currentUser.id_card=u.id_card;
+    currentUser.cert_url=u.cert_url;
+    currentUser.cert_verified=u.cert_verified;
+  }
+  const hasCert=currentUser.cert_url;
+  const banner=document.getElementById('cert-verified-banner');
+  const section=document.getElementById('cert-upload-section');
+  if(banner&&section){
+    banner.style.display=hasCert?'block':'none';
+    section.style.display=hasCert?'none':'block';
+  }
+}
 // ── 出票实名认证拦截 ──
 async function checkSellAuth(){
   if(!currentUser){openAuth('login');return}
-  // 已经通过认证，直接进入出票页
-  if(currentUser.real_name&&currentUser.id_card&&currentUser.cert_url){
+  // 从数据库取最新状态（确保cert_verified最新）
+  const{data:u}=await sb.from('users').select('real_name,id_card,cert_url,cert_verified').eq('id',currentUser.id).single();
+  if(u){currentUser.real_name=u.real_name;currentUser.id_card=u.id_card;currentUser.cert_url=u.cert_url;currentUser.cert_verified=u.cert_verified;}
+  // 已提交认证但待审核
+  if(currentUser.real_name&&currentUser.id_card&&currentUser.cert_url&&!currentUser.cert_verified){
+    alert('您的实名认证已提交，正在等待管理员审核。\n审核通过后即可上架门票，请耐心等待。');
+    return;
+  }
+  // 已审核通过，直接进入出票页
+  if(currentUser.real_name&&currentUser.id_card&&currentUser.cert_url&&currentUser.cert_verified){
     switchTab('sell');return;
   }
-  // 预填已有信息
+  // 未填写认证信息
   if(currentUser.real_name)document.getElementById('sa-name').value=currentUser.real_name;
   if(currentUser.id_card)document.getElementById('sa-idcard').value=currentUser.id_card;
   document.getElementById('sell-auth-overlay').style.display='block';
@@ -1239,11 +1270,13 @@ async function submitSellAuth(){
   // 保存到users表
   const{error}=await sb.from('users').update({real_name:name,id_card:idcard,cert_url:certUrl}).eq('id',currentUser.id);
   if(error){btn.disabled=false;btn.textContent='提交认证，进入出票';alert('提交失败：'+error.message);return}
-  // 更新本地currentUser
+  // 更新本地currentUser（cert_verified=false，待审核）
   currentUser.real_name=name;currentUser.id_card=idcard;currentUser.cert_url=certUrl;
+  currentUser.cert_verified=false;
   document.getElementById('sell-auth-overlay').style.display='none';
   btn.disabled=false;btn.textContent='提交认证，进入出票';
-  switchTab('sell');
+  // 显示等待审核提示，不进入出票页
+  alert('✅ 实名认证信息已提交！\n\n管理员将在24小时内审核您的资料，审核通过后即可上架门票。\n\n请稍后点击「上架」按钮查看审核结果。');
 }
 
 function switchTab(name){
@@ -1257,6 +1290,7 @@ function switchTab(name){
   if(name==='my')renderMyListings();
   if(name==='orders')renderMyOrders();
   if(name==='profile')renderProfile();
+  if(name==='sell')refreshCertSection();
 }
 function needLogin(name){
   if(!currentUser){openAuth('login');return}
@@ -1529,7 +1563,7 @@ function renderViewerForms(){
         </div>
         <div class="viewer-field">
           <label class="viewer-label">身份证号</label>
-          <input class="viewer-input" id="v-id-${i}" placeholder="18位身份证号" maxlength="18" oninput="checkID(${i})"/>
+          <input class="viewer-input" id="v-id-${i}" placeholder="18位身份证号" maxlength="18" oninput="checkID(${i})" autocapitalize="characters" style="text-transform:uppercase"/>
           <div class="viewer-err" id="v-id-err-${i}">身份证格式不正确</div>
         </div>
       </div>
@@ -1727,13 +1761,17 @@ function submitListing(){
   if(!date){alert('请选择演出日期');return}
   if(!price){alert('请填写出售价格');return}
   // 验证资格证
-  const certInput=document.getElementById('f-cert');
-  if(!certInput||!certInput.files[0]){
-    document.getElementById('f-cert-err').style.display='block';
-    document.getElementById('cert-upload-area').scrollIntoView({behavior:'smooth',block:'center'});
-    return;
+  // 如果用户已通过实名认证并有cert_url，跳过证件上传验证
+  const alreadyCertified=currentUser&&currentUser.cert_url;
+  if(!alreadyCertified){
+    const certInput=document.getElementById('f-cert');
+    if(!certInput||!certInput.files[0]){
+      document.getElementById('f-cert-err').style.display='block';
+      document.getElementById('cert-upload-area').scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    document.getElementById('f-cert-err').style.display='none';
   }
-  document.getElementById('f-cert-err').style.display='none';
   const s=SHOW_MAP[artist][idx];
   const qty=parseInt(document.getElementById('f-qty').value);
   const ticket_type=document.getElementById('f-tickettype').value;
@@ -1761,17 +1799,37 @@ async function confirmDeposit(){
   const{error:upErr}=await sb.storage.from('payments').upload(filename,file);
   if(upErr){alert('截图上传失败，请重试');return}
   const screenshotUrl=`${SB_URL}/storage/v1/object/public/payments/${filename}`;
-  // 上传资格证
-  let certUrl='';
-  const certInput=document.getElementById('f-cert');
-  if(certInput&&certInput.files[0]){
-    const certFile=certInput.files[0];
-    const certFilename=`cert_${Date.now()}_${currentUser.id}.${certFile.name.split('.').pop()}`;
-    const{error:certErr}=await sb.storage.from('payments').upload(certFilename,certFile);
-    if(!certErr)certUrl=`${SB_URL}/storage/v1/object/public/payments/${certFilename}`;
+  // 使用用户实名认证时上传的资格证
+  const certUrl=currentUser.cert_url||'';
+  // 插入listings（基础字段，不含可能未建的扩展字段）
+  const baseInsert={
+    artist:pendingListing.artist,
+    title:pendingListing.title,
+    date:pendingListing.date,
+    city:pendingListing.city,
+    qty:pendingListing.qty,
+    price:pendingListing.price,
+    orig:pendingListing.orig,
+    status:'pending',
+    img:pendingListing.img||'',
+    ticket_type:pendingListing.ticket_type||'录信息',
+    note:pendingListing.note||'',
+    user_id:pendingListing.user_id,
+    deposit_screenshot:screenshotUrl
+  };
+  // 先尝试带扩展字段插入
+  let{data,error}=await sb.from('listings').insert({
+    ...baseInsert,
+    cert_url:certUrl||'',
+    seller_name:currentUser.real_name||'',
+    seller_idcard:currentUser.id_card||''
+  }).select().single();
+  // 如果失败（字段不存在），退回基础字段插入
+  if(error&&(error.message.includes('column')||error.code==='42703')){
+    const res=await sb.from('listings').insert(baseInsert).select().single();
+    data=res.data;error=res.error;
   }
-  const{data,error}=await sb.from('listings').insert({...pendingListing,deposit_screenshot:screenshotUrl,cert_url:certUrl,status:'pending'}).select().single();
-  if(error){alert('上架失败，请重试');return}
+  if(error){alert('上架失败：'+error.message+'\n\n请在Supabase执行：\nALTER TABLE listings ADD COLUMN IF NOT EXISTS cert_url text;\nALTER TABLE listings ADD COLUMN IF NOT EXISTS seller_name text;\nALTER TABLE listings ADD COLUMN IF NOT EXISTS seller_idcard text;');return}
   myListings.unshift(data);
   document.getElementById('deposit-overlay').classList.remove('show');
   if(fileInput){fileInput.value='';document.getElementById('dep-file-name').textContent='';}
@@ -2013,11 +2071,15 @@ async function saveBank(){
   if(!cardno||cardno.length<16||!/^\d+$/.test(cardno)){errEl.textContent='请输入正确的银行卡号';errEl.style.display='block';return}
   if(!bank){errEl.textContent='请选择开户银行';errEl.style.display='block';return}
   errEl.style.display='none';
-  const{error}=await sb.from('bank_cards').insert({user_id:currentUser.id,holder_name:name,card_no:cardno,bank_name:bank});
+  const{data:insertData,error}=await sb.from('bank_cards').insert({user_id:currentUser.id,holder_name:name,card_no:cardno,bank_name:bank}).select().single();
   if(error){
-    if(error.message.includes('does not exist')||error.code==='42P01'){
-      alert('请在 Supabase 中创建 bank_cards 表，详见说明文档');
-    }else{errEl.textContent='绑定失败，请重试';errEl.style.display='block';}
+    let msg='绑定失败';
+    if(error.code==='42P01')msg='bank_cards表不存在，请在Supabase建表';
+    else if(error.code==='42501'||error.message.includes('permission'))msg='需要在Supabase执行：ALTER TABLE bank_cards DISABLE ROW LEVEL SECURITY;';
+    else if(error.message.includes('foreign key'))msg='请重新登录后再试';
+    else if(error.message.includes('new row violates'))msg='数据验证失败，请检查输入';
+    else msg='失败：'+error.message;
+    errEl.textContent=msg;errEl.style.display='block';
     return;
   }
   closeBankModal();
@@ -2123,7 +2185,7 @@ init();
         </div>
         <div class="form-group" style="margin-bottom:12px">
           <label class="form-label">身份证号</label>
-          <input class="form-input" id="sa-idcard" placeholder="18位身份证号" maxlength="18" inputmode="numeric" oninput="checkSaID()"/>
+          <input class="form-input" id="sa-idcard" placeholder="18位身份证号" maxlength="18" oninput="checkSaID()" autocapitalize="characters" style="text-transform:uppercase"/>
           <div style="font-size:11px;color:var(--red);margin-top:3px;display:none" id="sa-idcard-err">身份证格式不正确</div>
         </div>
         <div class="form-group" style="margin-bottom:16px">

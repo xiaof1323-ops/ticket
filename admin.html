@@ -744,12 +744,11 @@ async function updateOrderStatus(id,status){await sb.from('orders').update({stat
 
 // ── USERS ──
 async function loadUsers(){
-  const[{data:users},{data:listings},{data:orders},{data:cards},{data:certs}]=await Promise.all([
+  const[{data:users},{data:listings},{data:orders},{data:cards}]=await Promise.all([
     sb.from('users').select('*').order('created_at',{ascending:false}),
-    sb.from('listings').select('user_id,status,cert_url'),
+    sb.from('listings').select('user_id,status'),
     sb.from('orders').select('user_id'),
-    sb.from('bank_cards').select('user_id,bank_name,card_no,holder_name'),
-    sb.from('listings').select('user_id,cert_url').not('cert_url','is',null).neq('cert_url','')
+    sb.from('bank_cards').select('user_id,bank_name,card_no,holder_name')
   ]);
   const el=document.getElementById('admin-users');
   if(!users||!users.length){el.innerHTML='<div class="empty"><i class="fa fa-users"></i>暂无用户</div>';return}
@@ -764,8 +763,16 @@ async function loadUsers(){
       const uOrders=(orders||[]).filter(o=>o.user_id===u.id).length;
       const uCards=(cards||[]).filter(c=>c.user_id===u.id);
       const cardHtml=uCards.length?uCards.map(c=>`<div style="font-size:11px;font-family:var(--mono);color:var(--text2)">${c.bank_name} ${c.card_no.slice(-4).padStart(c.card_no.length,'*')} <span style="color:var(--text3)">${c.holder_name}</span></div>`).join(''):'<span style="color:var(--text3);font-size:11px">未绑定</span>';
-      const uCerts=(certs||[]).filter(c=>c.user_id===u.id&&c.cert_url);
-      const certHtml=uCerts.length?`<a href="${uCerts[0].cert_url}" target="_blank" style="color:var(--gold);font-size:11px;text-decoration:none">📋 查看证件</a>`:'<span style="color:var(--text3);font-size:11px">未提交</span>';
+      const hasCert=u.cert_url;
+      const isVerified=u.cert_verified;
+      const certHtml=hasCert
+        ?`<div style="font-size:11px"><a href="${u.cert_url}" target="_blank" style="color:var(--gold);text-decoration:none">📋 查看证件</a><br>
+          ${isVerified
+            ?'<span style="color:var(--green);font-size:10px">✅ 已审核通过</span>'
+            :`<span style="color:var(--gold);font-size:10px">⏳ 待审核</span>
+             <button onclick="approveCert(${u.id})" style="font-size:10px;padding:2px 6px;background:rgba(40,167,69,0.15);color:var(--green);border:0.5px solid rgba(40,167,69,0.3);border-radius:4px;cursor:pointer;margin-left:4px">审核通过</button>`
+          }</div>`
+        :'<span style="color:var(--text3);font-size:11px">未提交</span>';
       const bal=u.balance||0;
       const frozen=u.balance_frozen||0;
       return`<tr>
@@ -844,6 +851,12 @@ async function openUserDetail(uid){
 }
 function closeUserDetail(){
   document.getElementById('user-detail-overlay').style.display='none';
+}
+async function approveCert(uid){
+  const{error}=await sb.from('users').update({cert_verified:true}).eq('id',uid);
+  if(error){alert('审核失败：'+error.message);return}
+  alert('✅ 已审核通过，该用户现在可以上架门票');
+  loadUsers();
 }
 async function removeUser(id,name){
   if(!confirm('确认移除用户「'+name+'」？\n将同时清除该用户的上架记录、订单和银行卡信息'))return;
