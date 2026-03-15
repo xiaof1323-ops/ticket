@@ -190,33 +190,35 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
 .ticket-card{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r-xl);overflow:hidden;cursor:pointer;transition:all .2s}
 .ticket-card:hover{border-color:var(--gold-border);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.4)}
 
-/* 海报区 */
-.card-img{width:100%;aspect-ratio:16/7;position:relative;background:var(--surface3);overflow:hidden;display:block}
+/* ── 左图右文横向布局 ── */
+.ticket-card{display:flex;flex-direction:row;height:120px}
+.card-img{width:120px;min-width:120px;height:120px;position:relative;background:var(--surface3);overflow:hidden;flex-shrink:0}
 .card-img img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:transform .3s}
-.ticket-card:hover .card-img img{transform:scale(1.03)}
+.ticket-card:hover .card-img img{transform:scale(1.05)}
 .card-img-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a28,#0f0f18)}
-.card-emoji{font-size:56px;opacity:0.6}
-.card-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.75) 100%)}
-.card-img-bottom{position:absolute;bottom:0;left:0;right:0;padding:12px 14px}
-.card-artist-over{font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);margin-bottom:2px}
-.card-city-over{font-size:11px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:5px}
-.card-city-over i{font-size:10px}
-.card-badge{position:absolute;top:10px;left:10px;color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;backdrop-filter:blur(4px)}
-.badge-hot{background:rgba(224,90,0,0.85)}
-.badge-rare{background:rgba(123,47,247,0.85)}
+.card-emoji{font-size:36px;opacity:0.7}
+.card-img-overlay{display:none}
+.card-img-bottom{display:none}
+.card-badge{position:absolute;top:6px;left:6px;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}
+.badge-hot{background:rgba(224,90,0,0.9)}
+.badge-rare{background:rgba(123,47,247,0.9)}
+.card-artist-over{display:none}
+.card-city-over{display:none}
 
-/* 信息区 */
-.card-body{padding:12px 14px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.card-body-left{flex:1;min-width:0}
-.card-title-row{font-size:13px;color:var(--text2);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 右侧信息区 */
+.card-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;min-width:0;overflow:hidden}
+.card-body-top{flex:1;min-width:0}
+.card-artist-name{font-family:var(--serif);font-size:15px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-title-row{font-size:11px;color:var(--text2);margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-city-row{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;margin-bottom:5px}
 .card-meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.card-meta-chip{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:3px}
-.card-meta-chip i{font-size:10px;color:var(--text3)}
-.card-body-right{text-align:right;flex-shrink:0}
-.card-price{color:var(--gold);font-size:20px;font-weight:700;font-family:var(--mono);line-height:1}
-.card-price-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.card-meta-chip{font-size:10px;color:var(--text2);display:flex;align-items:center;gap:2px}
+.card-meta-chip i{font-size:9px;color:var(--text3)}
+.card-body-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px;border-top:0.5px solid var(--border)}
+.card-price{color:var(--gold);font-size:18px;font-weight:700;font-family:var(--mono);line-height:1}
+.card-price-sub{font-size:10px;color:var(--text2);margin-top:1px}
 .card-orig{color:var(--text3);font-size:10px;text-decoration:line-through}
-.btn-buy{margin-top:8px;padding:7px 16px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-md);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:all .15s;white-space:nowrap;display:block}
+.btn-buy{padding:6px 14px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-md);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:all .15s;white-space:nowrap;flex-shrink:0}
 .btn-buy:hover{background:var(--gold2)}
 .no-result{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px}
 .no-result i{font-size:32px;margin-bottom:10px;display:block;color:var(--text3)}
@@ -1164,25 +1166,24 @@ function renderTickets(){
     return`<div class="ticket-card" onclick="openOrderByShow(encodeURIComponent('${g.title}'))">
       <div class="card-img">
         ${imgHtml}
-        <div class="card-img-overlay"></div>
-        <div class="card-img-bottom">
-          <div class="card-artist-over">${g.artist}</div>
-          <div class="card-city-over"><i class="fa fa-map-marker-alt"></i>${g.city} · ${g.date}</div>
-        </div>
         ${badge}
       </div>
       <div class="card-body">
-        <div class="card-body-left">
+        <div class="card-body-top">
+          <div class="card-artist-name">${g.artist}</div>
+          <div class="card-city-row">📍 ${g.city} · ${g.date}</div>
           <div class="card-title-row">${shortTitle}</div>
           <div class="card-meta-row">
-            <span class="card-meta-chip"><i class="fa fa-ticket-alt"></i>${g.count}个票源</span>
-            ${g.orig?`<span class="card-meta-chip"><i class="fa fa-tag"></i>面价¥${g.orig.toLocaleString()}</span>`:''}
+            <span class="card-meta-chip">🎫 ${g.count}个票源</span>
+            ${g.orig?`<span class="card-meta-chip">🏷 面价¥${g.orig.toLocaleString()}</span>`:''}
           </div>
         </div>
-        <div class="card-body-right">
-          <div class="card-price">¥${g.minPrice.toLocaleString()}</div>
-          <div class="card-price-sub">起 · 零服务费</div>
-          <button class="btn-buy" onclick="event.stopPropagation();openOrderByShow(encodeURIComponent('${g.title}'))">立即选票</button>
+        <div class="card-body-bottom">
+          <div>
+            <div class="card-price">¥${g.minPrice.toLocaleString()}</div>
+            <div class="card-price-sub">起 · 零服务费</div>
+          </div>
+          <button class="btn-buy" onclick="event.stopPropagation();openOrderByShow(encodeURIComponent('${g.title}'))">选票</button>
         </div>
       </div>
     </div>`;
