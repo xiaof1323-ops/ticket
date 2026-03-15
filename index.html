@@ -517,10 +517,19 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
       <div class="bank-row"><span>备注</span><span id="dep-remark" style="color:var(--gold)"></span></div>
       <button class="btn-copy" id="dep-copy-btn" onclick="copyDepositNo()"><i class="fa fa-copy" style="margin-right:5px"></i>一键复制账户信息</button>
     </div>
+    <div style="background:rgba(212,168,71,0.08);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.7">
+      ⚠️ <strong style="color:var(--gold)">付款时请备注演出信息</strong><br>
+      备注格式：<span style="color:var(--text);font-family:var(--mono)" id="dep-remark-tip"></span>
+    </div>
     <div class="form-group" style="margin-bottom:14px">
-      <label class="form-label">银行流水号（付款后填写）</label>
-      <input class="form-input" id="dep-txid" placeholder="请输入转账流水号（纯数字，12位以上）" inputmode="numeric"/>
-      <div id="dep-txid-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请输入正确的流水号（纯数字，至少12位）</div>
+      <label class="form-label">上传付款截图</label>
+      <div class="upload-area">
+        <input type="file" id="dep-screenshot" accept="image/*" onchange="updateDepFileName(this)"/>
+        <i class="fa fa-image"></i>
+        <p>点击上传付款截图</p>
+        <div class="upload-name" id="dep-file-name"></div>
+      </div>
+      <div id="dep-screenshot-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传付款截图</div>
     </div>
     <button class="btn-pay" onclick="confirmDeposit()">确认已付款，提交上架申请</button>
   </div>
@@ -1255,7 +1264,7 @@ function renderSources(mode){
       if(l.note&&l.note.includes('连座')) tags.push('<span class="osi-tag">连座</span>');
       return`<div class="order-tier" style="border-bottom:0.5px solid var(--border)">
         <div class="order-source-item" style="margin:10px 16px;margin-bottom:${i===tickets.length-1?'10px':'0'}" onclick="selectTicket(${l.id})">
-          <div class="osi-icon">${typeIcon}</div>
+          <div class="osi-icon ${typeCls}">${typeLabel}</div>
           <div class="osi-body">
             <div class="osi-type">${l.ticket_type||'录信息'}</div>
             ${tags.length?`<div class="osi-tags">${tags.join('')}</div>`:''}
@@ -1359,6 +1368,9 @@ function updateOrderPrice(){
   document.getElementById('o-unit-price').textContent='¥'+t.price.toLocaleString();
   document.getElementById('o-total').textContent='¥'+total.toLocaleString();
 }
+function updateDepFileName(input){
+  document.getElementById('dep-file-name').textContent=input.files[0]?input.files[0].name:'';
+}
 function updateFileName(input){
   document.getElementById('o-file-name').textContent=input.files[0]?input.files[0].name:'';
 }
@@ -1458,19 +1470,28 @@ function submitListing(){
   document.getElementById('dep-qty').textContent=qty+'张';
   document.getElementById('dep-total').textContent='¥'+(price*qty).toLocaleString();
   document.getElementById('dep-amount').textContent='¥'+deposit.toLocaleString();
-  document.getElementById('dep-remark').textContent=artist+' '+s.city+'站 保证金';
+  const depRemark=artist+' '+s.city+'站 保证金';
+  document.getElementById('dep-remark').textContent=depRemark;
+  const depTip=document.getElementById('dep-remark-tip');
+  if(depTip)depTip.textContent=depRemark;
   document.getElementById('deposit-overlay').classList.add('show');
 }
 async function confirmDeposit(){
   if(!pendingListing)return;
-  const txid=document.getElementById('dep-txid').value.trim();
-  if(!txid||!/^\d{12,}$/.test(txid)){document.getElementById('dep-txid-err').style.display='block';return}
-  document.getElementById('dep-txid-err').style.display='none';
-  const{data,error}=await sb.from('listings').insert({...pendingListing,txid,status:'pending'}).select().single();
+  const fileInput=document.getElementById('dep-screenshot');
+  const file=fileInput?fileInput.files[0]:null;
+  if(!file){document.getElementById('dep-screenshot-err').style.display='block';return}
+  document.getElementById('dep-screenshot-err').style.display='none';
+  // 上传截图
+  const filename=`deposit_${Date.now()}_${currentUser.id}.${file.name.split('.').pop()}`;
+  const{error:upErr}=await sb.storage.from('payments').upload(filename,file);
+  if(upErr){alert('截图上传失败，请重试');return}
+  const screenshotUrl=`${SB_URL}/storage/v1/object/public/payments/${filename}`;
+  const{data,error}=await sb.from('listings').insert({...pendingListing,deposit_screenshot:screenshotUrl,status:'pending'}).select().single();
   if(error){alert('上架失败，请重试');return}
   myListings.unshift(data);
   document.getElementById('deposit-overlay').classList.remove('show');
-  document.getElementById('dep-txid').value='';
+  if(fileInput){fileInput.value='';document.getElementById('dep-file-name').textContent='';}
   const toast=document.getElementById('sell-toast');
   toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),5000);
   // reset form
