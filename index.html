@@ -1351,7 +1351,7 @@ function selectTicket(id){
   // 备注格式：艺人 城市站 日期(只取日) 价格 备注
   const dateDay=t.date?t.date.replace(/^\d{4}-\d{2}-/,'')+'号':'';
   const notePart=t.note?` ${t.note}`:'';
-  const remarkText=`${t.artist} ${t.city}站 ${dateDay}¥${t.price.toLocaleString()}${notePart}`;
+  const remarkText=`${t.city}${t.artist}${dateDay}${t.orig?t.orig.toLocaleString():''}${notePart}`;
   document.getElementById('o-remark').textContent=remarkText;
   const tipEl=document.getElementById('o-pay-remark-tip');
   if(tipEl)tipEl.textContent=remarkText;
