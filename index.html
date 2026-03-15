@@ -436,6 +436,40 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
 .btn-view-proof{padding:5px 12px;background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border);border-radius:var(--r-sm);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap;flex-shrink:0;transition:all .15s}
 .btn-view-proof:hover{background:var(--green);color:#fff}
 
+/* ── 观影人信息 ── */
+.viewer-step-bar{display:flex;align-items:center;gap:0;margin-bottom:18px}
+.vstep{flex:1;text-align:center;position:relative}
+.vstep-dot{width:24px;height:24px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--surface3);border:0.5px solid var(--border-md);color:var(--text3)}
+.vstep.active .vstep-dot{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+.vstep.done .vstep-dot{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.vstep-label{font-size:10px;color:var(--text3)}
+.vstep.active .vstep-label{color:var(--gold)}
+.vstep.done .vstep-label{color:var(--green)}
+.vstep-line{flex:1;height:1px;background:var(--border);margin-top:-14px}
+.viewer-card{background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:10px}
+.viewer-card-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.viewer-card-title i{color:var(--gold)}
+.viewer-input-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.viewer-input-row:last-child{margin-bottom:0}
+.viewer-field{}
+.viewer-label{font-size:11px;color:var(--text2);margin-bottom:4px;display:block}
+.viewer-input{width:100%;padding:8px 10px;border:0.5px solid var(--border-md);border-radius:var(--r-md);font-size:13px;background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;transition:all .15s}
+.viewer-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,168,71,0.1)}
+.viewer-input.error{border-color:var(--red)}
+.viewer-input.valid{border-color:var(--green)}
+.viewer-err{font-size:10px;color:var(--red);margin-top:3px;display:none}
+.viewer-err.show{display:block}
+.viewer-confirm-card{background:var(--surface3);border:0.5px solid var(--gold-border);border-radius:var(--r-lg);padding:14px;margin-bottom:10px}
+.viewer-confirm-title{font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px}
+.viewer-confirm-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--border)}
+.viewer-confirm-row:last-child{border-bottom:none}
+.viewer-confirm-row span:first-child{color:var(--text2)}
+.viewer-confirm-row span:last-child{font-weight:600;font-family:var(--mono)}
+.btn-next-step{width:100%;padding:12px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-lg);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);transition:background .15s;margin-top:4px}
+.btn-next-step:hover{background:var(--gold2)}
+.btn-back-step{width:100%;padding:10px;background:transparent;color:var(--text2);border:0.5px solid var(--border-md);border-radius:var(--r-lg);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-bottom:8px;transition:all .15s}
+.btn-back-step:hover{background:var(--surface3);color:var(--text)}
+
 /* ── SECTION TITLE ── */
 .section-title{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-family:var(--serif)}
 .section-title::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px;flex-shrink:0}
@@ -553,50 +587,81 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
       </div>
       <div id="order-show-list" style="overflow-y:auto;max-height:55vh"></div>
     </div>
-    <!-- 填写订单 -->
+    <!-- Step1: 填写观影人信息 -->
     <div id="order-form-view" style="display:none">
-      <div class="modal-title">确认订单</div>
-      <div class="order-ticket-info">
-        <div class="order-ticket-name" id="o-name"></div>
-        <div class="otear"></div>
-        <div class="order-ticket-meta" id="o-meta"></div>
+      <!-- 步骤条 -->
+      <div class="viewer-step-bar">
+        <div class="vstep active" id="vstep-1"><div class="vstep-dot" id="vstep-dot-1">1</div><div class="vstep-label">填写信息</div></div>
+        <div class="vstep-line"></div>
+        <div class="vstep" id="vstep-2"><div class="vstep-dot" id="vstep-dot-2">2</div><div class="vstep-label">核对信息</div></div>
+        <div class="vstep-line"></div>
+        <div class="vstep" id="vstep-3"><div class="vstep-dot" id="vstep-dot-3">3</div><div class="vstep-label">付款</div></div>
       </div>
-      <div class="order-qty-row">
-        <span class="qty-label">购票数量</span>
-        <div class="qty-ctrl">
-          <button class="qty-btn" onclick="changeQty(-1)">−</button>
-          <span class="qty-num" id="o-qty">1</span>
-          <button class="qty-btn" onclick="changeQty(1)">+</button>
+
+      <!-- Step1内容：观影人信息 -->
+      <div id="o-step1">
+        <div class="order-ticket-info" style="margin-bottom:14px">
+          <div class="order-ticket-name" id="o-name"></div>
+          <div class="otear"></div>
+          <div class="order-ticket-meta" id="o-meta"></div>
         </div>
-      </div>
-      <div class="order-price-box">
-        <div class="order-price-row"><span>票价</span><span id="o-unit-price"></span></div>
-        <div class="order-price-row"><span>数量</span><span id="o-qty-show"></span></div>
-        <div class="order-price-row total"><span>合计</span><span id="o-total"></span></div>
-      </div>
-      <div class="bank-box">
-        <div class="bank-title"><i class="fa fa-university" style="margin-right:5px;color:var(--gold)"></i>付款账户</div>
-        <div class="bank-row"><span>开户行</span><span>中国工商银行</span></div>
-        <div class="bank-row"><span>户名</span><span>肖宏涛</span></div>
-        <div class="bank-row"><span>卡号</span><span>6222 0340 0006 1712 927</span></div>
-        <div class="bank-row"><span>备注</span><span id="o-remark" style="color:var(--gold)"></span></div>
-        <button class="btn-copy" id="copy-btn" onclick="copyBankNo()"><i class="fa fa-copy" style="margin-right:5px"></i>一键复制账户信息</button>
-      </div>
-      <div class="form-group" style="margin-bottom:10px">
-        <label class="form-label">上传付款截图</label>
-        <div class="upload-area">
-          <input type="file" id="o-screenshot" accept="image/*" onchange="updateFileName(this)"/>
-          <i class="fa fa-image"></i>
-          <p>点击上传付款截图</p>
-          <div class="upload-name" id="o-file-name"></div>
+        <div class="order-qty-row">
+          <span class="qty-label">购票数量</span>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <span class="qty-num" id="o-qty">1</span>
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
         </div>
-        <div id="o-screenshot-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传付款截图</div>
+        <div id="o-viewers-wrap"></div>
+        <button class="btn-next-step" onclick="goToStep2()">下一步：核对信息</button>
       </div>
-      <div style="background:rgba(212,168,71,0.08);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.7">
-        ⚠️ <strong style="color:var(--gold)">付款时请务必备注演出信息</strong><br>
-        备注格式：<span style="color:var(--text);font-family:var(--mono)" id="o-pay-remark-tip"></span>
+
+      <!-- Step2内容：核对信息 -->
+      <div id="o-step2" style="display:none">
+        <div class="order-ticket-info" style="margin-bottom:14px">
+          <div class="order-ticket-name" id="o-name2"></div>
+          <div class="otear"></div>
+          <div class="order-ticket-meta" id="o-meta2"></div>
+        </div>
+        <div class="order-price-box" style="margin-bottom:12px">
+          <div class="order-price-row"><span>票价</span><span id="o-unit-price"></span></div>
+          <div class="order-price-row"><span>数量</span><span id="o-qty-show"></span></div>
+          <div class="order-price-row total"><span>合计</span><span id="o-total"></span></div>
+        </div>
+        <div id="o-confirm-viewers"></div>
+        <p style="font-size:11px;color:var(--text2);margin-bottom:14px;line-height:1.7">⚠️ 请仔细核对观影人信息，提交后无法修改</p>
+        <button class="btn-back-step" onclick="goToStep1()">← 返回修改</button>
+        <button class="btn-next-step" onclick="goToStep3()">信息无误，去付款</button>
       </div>
-      <button class="btn-pay" onclick="doPay()">提交付款凭证</button>
+
+      <!-- Step3内容：付款 -->
+      <div id="o-step3" style="display:none">
+        <div class="bank-box">
+          <div class="bank-title"><i class="fa fa-university" style="margin-right:5px;color:var(--gold)"></i>付款账户</div>
+          <div class="bank-row"><span>开户行</span><span>中国工商银行</span></div>
+          <div class="bank-row"><span>户名</span><span>肖宏涛</span></div>
+          <div class="bank-row"><span>卡号</span><span>6222 0340 0006 1712 927</span></div>
+          <div class="bank-row"><span>备注</span><span id="o-remark" style="color:var(--gold)"></span></div>
+          <button class="btn-copy" id="copy-btn" onclick="copyBankNo()"><i class="fa fa-copy" style="margin-right:5px"></i>一键复制账户信息</button>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">上传付款截图</label>
+          <div class="upload-area">
+            <input type="file" id="o-screenshot" accept="image/*" onchange="updateFileName(this)"/>
+            <i class="fa fa-image"></i>
+            <p>点击上传付款截图</p>
+            <div class="upload-name" id="o-file-name"></div>
+          </div>
+          <div id="o-screenshot-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传付款截图</div>
+        </div>
+        <div style="background:rgba(212,168,71,0.08);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.7">
+          ⚠️ <strong style="color:var(--gold)">付款时请务必备注演出信息</strong><br>
+          备注格式：<span style="color:var(--text);font-family:var(--mono)" id="o-pay-remark-tip"></span>
+        </div>
+        <button class="btn-back-step" onclick="goToStep2()">← 返回核对</button>
+        <button class="btn-pay" onclick="doPay()">提交付款凭证</button>
+      </div>
     </div>
     <!-- 成功 -->
     <div class="success-screen" id="order-success-view">
@@ -1358,9 +1423,116 @@ function selectTicket(id){
   updateOrderPrice();
   document.getElementById('order-select-view').style.display='none';
   document.getElementById('order-form-view').style.display='';
+  setStep(1);
+  renderViewerForms();
 }
 function closeOrder(){document.getElementById('order-overlay').classList.remove('show')}
-function changeQty(d){orderQty=Math.max(1,Math.min(orderTicket.qty,orderQty+d));updateOrderPrice()}
+
+// ── 身份证校验 ──
+function validateID(id){
+  if(!/^\d{17}[\dXx]$/.test(id))return false;
+  const w=[7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2];
+  const c=['1','0','X','9','8','7','6','5','4','3','2'];
+  let s=0;
+  for(let i=0;i<17;i++)s+=parseInt(id[i])*w[i];
+  return c[s%11]===id[17].toUpperCase();
+}
+
+// 渲染观影人填写表单
+function renderViewerForms(){
+  const wrap=document.getElementById('o-viewers-wrap');
+  wrap.innerHTML='';
+  for(let i=0;i<orderQty;i++){
+    wrap.innerHTML+=`<div class="viewer-card" id="viewer-card-${i}">
+      <div class="viewer-card-title"><i class="fa fa-user"></i>观影人 ${i+1}</div>
+      <div class="viewer-input-row">
+        <div class="viewer-field">
+          <label class="viewer-label">真实姓名</label>
+          <input class="viewer-input" id="v-name-${i}" placeholder="请输入真实姓名" oninput="clearVErr(${i})"/>
+          <div class="viewer-err" id="v-name-err-${i}">请输入真实姓名</div>
+        </div>
+        <div class="viewer-field">
+          <label class="viewer-label">身份证号</label>
+          <input class="viewer-input" id="v-id-${i}" placeholder="18位身份证号" maxlength="18" oninput="checkID(${i})"/>
+          <div class="viewer-err" id="v-id-err-${i}">身份证格式不正确</div>
+        </div>
+      </div>
+    </div>`;
+  }
+}
+function clearVErr(i){
+  document.getElementById('v-name-err-'+i).classList.remove('show');
+  document.getElementById('v-name-'+i).classList.remove('error');
+}
+function checkID(i){
+  const input=document.getElementById('v-id-'+i);
+  const val=input.value.trim();
+  const errEl=document.getElementById('v-id-err-'+i);
+  if(val.length===0){input.className='viewer-input';errEl.classList.remove('show');return}
+  if(validateID(val)){
+    input.className='viewer-input valid';
+    errEl.classList.remove('show');
+  }else{
+    input.className='viewer-input error';
+    errEl.classList.add('show');
+    errEl.textContent='身份证格式不正确，请检查';
+  }
+}
+
+// Step1 → Step2
+function goToStep2(){
+  // 验证所有观影人信息
+  let ok=true;
+  for(let i=0;i<orderQty;i++){
+    const name=document.getElementById('v-name-'+i).value.trim();
+    const id=document.getElementById('v-id-'+i).value.trim();
+    if(!name){
+      document.getElementById('v-name-err-'+i).classList.add('show');
+      document.getElementById('v-name-'+i).className='viewer-input error';
+      ok=false;
+    }
+    if(!validateID(id)){
+      document.getElementById('v-id-err-'+i).classList.add('show');
+      document.getElementById('v-id-'+i).className='viewer-input error';
+      document.getElementById('v-id-err-'+i).textContent=id?'身份证格式不正确，请重新输入':'请输入身份证号';
+      ok=false;
+    }
+  }
+  if(!ok)return;
+  // 渲染核对信息
+  const t=orderTicket;
+  document.getElementById('o-name2').textContent=t.title;
+  document.getElementById('o-meta2').textContent=`${t.date} · ${t.city}
+${t.ticket_type||'录信息'} · ${orderQty}张`;
+  const confirmWrap=document.getElementById('o-confirm-viewers');
+  let html='';
+  for(let i=0;i<orderQty;i++){
+    const name=document.getElementById('v-name-'+i).value.trim();
+    const id=document.getElementById('v-id-'+i).value.trim();
+    const masked=id.slice(0,6)+'****'+id.slice(14);
+    html+=`<div class="viewer-confirm-card">
+      <div class="viewer-confirm-title">观影人 ${i+1}</div>
+      <div class="viewer-confirm-row"><span>姓名</span><span>${name}</span></div>
+      <div class="viewer-confirm-row"><span>身份证</span><span>${masked}</span></div>
+    </div>`;
+  }
+  confirmWrap.innerHTML=html;
+  // 切换步骤
+  setStep(2);
+}
+function goToStep1(){setStep(1)}
+function goToStep3(){setStep(3)}
+
+function setStep(n){
+  document.getElementById('o-step1').style.display=n===1?'':'none';
+  document.getElementById('o-step2').style.display=n===2?'':'none';
+  document.getElementById('o-step3').style.display=n===3?'':'none';
+  [1,2,3].forEach(i=>{
+    const vstep=document.getElementById('vstep-'+i);
+    vstep.className='vstep'+(i<n?' done':i===n?' active':'');
+  });
+}
+function changeQty(d){orderQty=Math.max(1,Math.min(orderTicket.qty,orderQty+d));updateOrderPrice();renderViewerForms();}
 function updateOrderPrice(){
   const t=orderTicket,total=t.price*orderQty;
   document.getElementById('o-qty').textContent=orderQty;
@@ -1384,10 +1556,18 @@ async function doPay(){
   const{error:uploadErr}=await sb.storage.from('payments').upload(filename,file);
   if(uploadErr){alert('截图上传失败，请重试');return}
   const screenshotUrl=`${SB_URL}/storage/v1/object/public/payments/${filename}`;
+  // 收集观影人信息
+  const viewers=[];
+  for(let i=0;i<orderQty;i++){
+    const nameEl=document.getElementById('v-name-'+i);
+    const idEl=document.getElementById('v-id-'+i);
+    if(nameEl&&idEl)viewers.push({name:nameEl.value.trim(),id_card:idEl.value.trim()});
+  }
   const{data,error}=await sb.from('orders').insert({
     user_id:currentUser.id,listing_id:t.id,
     artist:t.artist,title:t.title,date:t.date,city:t.city,
     zone:t.zone||'',qty:orderQty,price:t.price,total,
+    viewers:JSON.stringify(viewers),
     status:'待审核',pay_screenshot:screenshotUrl,pay_status:'待审核'
   }).select().single();
   if(error){alert('提交失败，请重试');return}
