@@ -284,6 +284,20 @@ tr:hover td{background:rgba(255,255,255,0.02)}
               <input class="form-input" id="ns-prices" placeholder="480,680,980,1280,1580"/>
             </div>
             <div class="form-group">
+              <label class="form-label">演出海报图片（选填）</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input class="form-input" id="ns-poster-url" placeholder="直接填图片URL，或点击上传"/>
+                <label style="cursor:pointer;background:var(--surface3);border:0.5px solid var(--border-md);border-radius:var(--r-md);padding:8px 12px;font-size:12px;color:var(--text2);white-space:nowrap">
+                  <input type="file" id="ns-poster-file" accept="image/*" style="display:none" onchange="previewPosterUpload(this)"/>
+                  📷 上传图片
+                </label>
+              </div>
+              <div id="ns-poster-preview" style="margin-top:8px;display:none">
+                <img id="ns-poster-img" style="height:80px;border-radius:6px;object-fit:cover;border:0.5px solid var(--border)"/>
+                <span style="font-size:11px;color:var(--green);margin-left:8px" id="ns-poster-status"></span>
+              </div>
+            </div>
+            <div class="form-group">
               <label class="form-label" style="display:flex;align-items:center;gap:6px">
                 <input type="checkbox" id="ns-hot" style="accent-color:var(--gold)"/> 标记为热门（🔥 抢手）
               </label>
@@ -407,6 +421,17 @@ async function loadAll(){
 
 // ── SHOWS ──
 let newShowDates=[];
+function previewPosterUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('ns-poster-img').src=e.target.result;
+    document.getElementById('ns-poster-preview').style.display='flex';
+    document.getElementById('ns-poster-preview').style.alignItems='center';
+    document.getElementById('ns-poster-status').textContent='✓ '+file.name;
+  };
+  reader.readAsDataURL(file);
+}
 function addDateTag(e){
   if(e.key!=='Enter'&&e.key!==','&&e.key!=='，')return;
   e.preventDefault();
@@ -441,10 +466,19 @@ async function addShow(){
   if(!artist||!city||!title){alert('请填写艺人、城市和演出全称');return}
   if(newShowDates.length===0){alert('请至少添加一个演出日期');return}
   const orig_prices=pricesRaw?pricesRaw.split(',').map(p=>parseInt(p.trim())).filter(Boolean):[];
+  // 处理海报图片
+  let posterUrl=document.getElementById('ns-poster-url').value.trim();
+  const posterFile=document.getElementById('ns-poster-file').files[0];
+  if(posterFile&&!posterUrl){
+    document.getElementById('ns-poster-status').textContent='上传中...';
+    const fname=`poster_${Date.now()}.${posterFile.name.split('.').pop()}`;
+    const{error:upErr}=await sb.storage.from('payments').upload(fname,posterFile,{upsert:true});
+    if(!upErr)posterUrl=`${SB_URL}/storage/v1/object/public/payments/${fname}`;
+  }
   const{error}=await sb.from('shows').insert({
     artist,city,title,label:label||title,type,venue,
     dates:newShowDates,date:newShowDates[0],
-    orig_prices,hot,active:true
+    orig_prices,hot,active:true,img:posterUrl||''
   });
   if(error){
     // shows 表可能不存在，提示用户
@@ -462,6 +496,9 @@ async function addShow(){
   document.getElementById('ns-label').value='';
   document.getElementById('ns-venue').value='';
   document.getElementById('ns-prices').value='';
+  document.getElementById('ns-poster-url').value='';
+  document.getElementById('ns-poster-file').value='';
+  document.getElementById('ns-poster-preview').style.display='none';
   document.getElementById('ns-hot').checked=false;
   newShowDates=[];renderDateTags();
   loadShows();
@@ -476,23 +513,27 @@ async function loadShows(){
   }
   grid.innerHTML=shows.map(s=>`
     <div class="show-list-card">
-      <div class="slc-status">
-        <label class="toggle-switch" title="${s.active?'点击下架':'点击上架'}">
-          <input type="checkbox" ${s.active?'checked':''} onchange="toggleShow(${s.id},this.checked)"/>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="slc-artist">${s.artist}</div>
-      <div class="slc-title">${s.title}</div>
-      <div class="slc-meta">
-        📍 ${s.city} ${s.venue?'· '+s.venue:''}<br>
-        📅 ${Array.isArray(s.dates)?s.dates.join(' / '):(s.date||'-')}<br>
-        💰 ${Array.isArray(s.orig_prices)&&s.orig_prices.length?'¥'+s.orig_prices.join(' / ¥'):'-'}
-        ${s.hot?'<br>🔥 <span style="color:var(--orange)">热门标记</span>':''}
-      </div>
-      <div class="slc-actions">
-        <button class="btn-sm btn-icon danger" onclick="deleteShow(${s.id})" title="删除"><i class="fa fa-trash"></i></button>
-        ${s.active?'<span class="pill pill-live">上架中</span>':'<span class="pill pill-sold">已下架</span>'}
+      ${s.img?`<img src="${s.img}" style="width:100%;height:90px;object-fit:cover;border-radius:8px 8px 0 0;display:block;margin:-0px" onerror="this.style.display='none'"/>`:''}
+      <div style="padding:10px">
+        <div class="slc-status" style="margin-bottom:6px">
+          <label class="toggle-switch" title="${s.active?'点击下架':'点击上架'}">
+            <input type="checkbox" ${s.active?'checked':''} onchange="toggleShow(${s.id},this.checked)"/>
+            <span class="toggle-slider"></span>
+          </label>
+          ${s.active?'<span class="pill pill-live" style="margin-left:6px">上架中</span>':'<span class="pill pill-sold" style="margin-left:6px">已下架</span>'}
+        </div>
+        <div class="slc-artist">${s.artist}</div>
+        <div class="slc-title">${s.title}</div>
+        <div class="slc-meta">
+          📍 ${s.city} ${s.venue?'· '+s.venue:''}<br>
+          📅 ${Array.isArray(s.dates)?s.dates.join(' / '):(s.date||'-')}<br>
+          💰 ${Array.isArray(s.orig_prices)&&s.orig_prices.length?'¥'+s.orig_prices.join(' / ¥'):'-'}
+          ${s.hot?'<br>🔥 <span style="color:var(--orange)">热门标记</span>':''}
+        </div>
+        <div class="slc-actions" style="margin-top:8px;display:flex;gap:6px">
+          <button class="btn-sm" onclick="openEditShow(${s.id})" style="flex:1;font-size:11px"><i class="fa fa-edit"></i> 编辑</button>
+          <button class="btn-sm danger" onclick="deleteShow(${s.id})" style="font-size:11px"><i class="fa fa-trash"></i></button>
+        </div>
       </div>
     </div>
   `).join('');
@@ -504,6 +545,76 @@ async function deleteShow(id){
   if(!confirm('确认删除该演出场次？'))return;
   await sb.from('shows').delete().eq('id',id);
   loadShows();
+}
+let editShowData=null;
+function openEditShow(id){
+  // 从已渲染的shows数据中找
+  sb.from('shows').select('*').eq('id',id).single().then(({data:s})=>{
+    if(!s)return;
+    editShowData=s;
+    document.getElementById('edit-show-id').value=s.id;
+    document.getElementById('edit-artist').value=s.artist||'';
+    document.getElementById('edit-city').value=s.city||'';
+    document.getElementById('edit-title').value=s.title||'';
+    document.getElementById('edit-label').value=s.label||'';
+    document.getElementById('edit-type').value=s.type||'concert';
+    document.getElementById('edit-venue').value=s.venue||'';
+    document.getElementById('edit-dates').value=Array.isArray(s.dates)?s.dates.join(','):(s.date||'');
+    document.getElementById('edit-prices').value=Array.isArray(s.orig_prices)?s.orig_prices.join(','):'';
+    document.getElementById('edit-hot').checked=!!s.hot;
+    const posterUrl=s.img||'';
+    document.getElementById('edit-poster-url').value=posterUrl;
+    const prev=document.getElementById('edit-poster-preview');
+    if(posterUrl){prev.src=posterUrl;prev.style.display='block';}else{prev.style.display='none';}
+    document.getElementById('edit-show-overlay').style.display='block';
+  });
+}
+function closeEditShow(){
+  document.getElementById('edit-show-overlay').style.display='none';
+  document.getElementById('edit-poster-file').value='';
+  document.getElementById('edit-poster-status').textContent='';
+}
+function previewEditPoster(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('edit-poster-preview');
+    prev.src=e.target.result;prev.style.display='block';
+    document.getElementById('edit-poster-status').textContent='✓ 已选择：'+file.name;
+  };
+  reader.readAsDataURL(file);
+}
+async function saveEditShow(){
+  const id=document.getElementById('edit-show-id').value;
+  const artist=document.getElementById('edit-artist').value.trim();
+  const city=document.getElementById('edit-city').value.trim();
+  const title=document.getElementById('edit-title').value.trim();
+  const label=document.getElementById('edit-label').value.trim();
+  const type=document.getElementById('edit-type').value;
+  const venue=document.getElementById('edit-venue').value.trim();
+  const datesRaw=document.getElementById('edit-dates').value.trim();
+  const pricesRaw=document.getElementById('edit-prices').value.trim();
+  const hot=document.getElementById('edit-hot').checked;
+  if(!artist||!city||!title){alert('请填写艺人、城市和演出全称');return}
+  const dates=datesRaw?datesRaw.split(',').map(d=>d.trim()).filter(Boolean):[];
+  const orig_prices=pricesRaw?pricesRaw.split(',').map(p=>parseInt(p.trim())).filter(Boolean):[];
+  // 处理海报
+  let img=document.getElementById('edit-poster-url').value.trim();
+  const posterFile=document.getElementById('edit-poster-file').files[0];
+  if(posterFile){
+    document.getElementById('edit-poster-status').textContent='上传中...';
+    const fname='poster_'+Date.now()+'.'+posterFile.name.split('.').pop();
+    const{error:upErr}=await sb.storage.from('payments').upload(fname,posterFile,{upsert:true});
+    if(!upErr)img=SB_URL+'/storage/v1/object/public/payments/'+fname;
+  }
+  const{error}=await sb.from('shows').update({
+    artist,city,title,label:label||title,type,venue,
+    dates,date:dates[0]||'',orig_prices,hot,img
+  }).eq('id',id);
+  if(error){alert('保存失败：'+error.message);return}
+  closeEditShow();
+  loadShows();
+  alert('✓ 已保存');
 }
 
 // ── LISTINGS ──
@@ -599,28 +710,107 @@ async function updateOrderStatus(id,status){await sb.from('orders').update({stat
 
 // ── USERS ──
 async function loadUsers(){
-  const[{data:users},{data:listings},{data:orders}]=await Promise.all([
+  const[{data:users},{data:listings},{data:orders},{data:cards},{data:certs}]=await Promise.all([
     sb.from('users').select('*').order('created_at',{ascending:false}),
-    sb.from('listings').select('user_id,status'),
-    sb.from('orders').select('user_id')
+    sb.from('listings').select('user_id,status,cert_url'),
+    sb.from('orders').select('user_id'),
+    sb.from('bank_cards').select('user_id,bank_name,card_no,holder_name'),
+    sb.from('listings').select('user_id,cert_url').not('cert_url','is',null).neq('cert_url','')
   ]);
   const el=document.getElementById('admin-users');
   if(!users||!users.length){el.innerHTML='<div class="empty"><i class="fa fa-users"></i>暂无用户</div>';return}
   el.innerHTML=`<table>
-    <thead><tr><th>ID</th><th>昵称</th><th>账号</th><th>出票中</th><th>订单数</th><th>注册时间</th></tr></thead>
+    <thead><tr>
+      <th>ID</th><th>昵称</th><th>账号</th>
+      <th>余额</th><th>绑定银行卡</th><th>演出许可证</th>
+      <th>出票中</th><th>订单数</th><th>注册时间</th><th>操作</th>
+    </tr></thead>
     <tbody>${users.map(u=>{
       const uListings=(listings||[]).filter(l=>l.user_id===u.id&&l.status==='live').length;
       const uOrders=(orders||[]).filter(o=>o.user_id===u.id).length;
+      const uCards=(cards||[]).filter(c=>c.user_id===u.id);
+      const cardHtml=uCards.length?uCards.map(c=>`<div style="font-size:11px;font-family:var(--mono);color:var(--text2)">${c.bank_name} ${c.card_no.slice(-4).padStart(c.card_no.length,'*')} <span style="color:var(--text3)">${c.holder_name}</span></div>`).join(''):'<span style="color:var(--text3);font-size:11px">未绑定</span>';
+      const uCerts=(certs||[]).filter(c=>c.user_id===u.id&&c.cert_url);
+      const certHtml=uCerts.length?`<a href="${uCerts[0].cert_url}" target="_blank" style="color:var(--gold);font-size:11px;text-decoration:none">📋 查看证件</a>`:'<span style="color:var(--text3);font-size:11px">未提交</span>';
+      const bal=u.balance||0;
+      const frozen=u.balance_frozen||0;
       return`<tr>
         <td style="color:var(--text3);font-family:var(--mono);font-size:11px">${u.id}</td>
         <td><strong>${u.name}</strong></td>
         <td style="font-family:var(--mono);font-size:12px">${u.account}</td>
+        <td style="font-size:12px">
+          <span style="color:var(--gold);font-weight:700">¥${bal.toFixed(2)}</span>
+          ${frozen>0?`<br><span style="font-size:10px;color:var(--text3)">冻结¥${frozen.toFixed(2)}</span>`:''}
+        </td>
+        <td>${cardHtml}</td>
+        <td>${certHtml}</td>
         <td><span style="color:var(--gold);font-weight:700">${uListings}</span></td>
         <td>${uOrders}</td>
         <td style="color:var(--text3);font-size:11px;font-family:var(--mono)">${new Date(u.created_at).toLocaleString('zh-CN')}</td>
+        <td><button class="btn-sm danger" onclick="removeUser(${u.id},'${u.name}')" style="background:rgba(220,50,50,0.1);color:#e55;border-color:rgba(220,50,50,0.3);font-size:11px"><i class="fa fa-user-times"></i> 移除</button></td>
       </tr>`;
     }).join('')}</tbody></table>`;
 }
+async function removeUser(id,name){
+  if(!confirm('确认移除用户「'+name+'」？\n此操作将删除该用户账号（不影响订单记录）'))return;
+  const{error}=await sb.from('users').delete().eq('id',id);
+  if(error){alert('移除失败：'+error.message);return}
+  alert('已移除用户 '+name);
+  loadUsers();
+}
 </script>
+<!-- 编辑演出弹窗 -->
+<div class="overlay" id="edit-show-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;overflow-y:auto;padding:20px">
+  <div style="max-width:560px;margin:0 auto;background:var(--surface2);border-radius:var(--r-lg);padding:20px;border:0.5px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700">✏️ 编辑演出信息</div>
+      <button onclick="closeEditShow()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <input type="hidden" id="edit-show-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">艺人名称</label><input class="form-input" id="edit-artist"/></div>
+      <div class="form-group"><label class="form-label">演出城市</label><input class="form-input" id="edit-city"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">演出全称</label><input class="form-input" id="edit-title"/></div>
+    <div class="form-group"><label class="form-label">场次简称</label><input class="form-input" id="edit-label"/></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">演出类型</label>
+        <select class="form-select" id="edit-type">
+          <option value="concert">演唱会</option>
+          <option value="talk">脱口秀</option>
+          <option value="musical">音乐剧</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">场馆</label><input class="form-input" id="edit-venue"/></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">演出日期（逗号分隔）</label>
+      <input class="form-input" id="edit-dates" placeholder="2026-04-17,2026-04-18"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">面价列表（逗号分隔）</label>
+      <input class="form-input" id="edit-prices" placeholder="580,780,1080,1380"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">海报图片URL</label>
+      <input class="form-input" id="edit-poster-url" placeholder="填入图片URL"/>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <label style="cursor:pointer;font-size:12px;color:var(--gold);border:0.5px solid var(--gold-border);padding:5px 10px;border-radius:6px">
+          <input type="file" id="edit-poster-file" accept="image/*" style="display:none" onchange="previewEditPoster(this)"/>
+          📷 重新上传海报
+        </label>
+        <span id="edit-poster-status" style="font-size:11px;color:var(--text3)"></span>
+      </div>
+      <img id="edit-poster-preview" style="height:70px;border-radius:6px;margin-top:6px;object-fit:cover;display:none"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="edit-hot" style="accent-color:var(--gold)"/> 标记为热门（🔥 抢手）
+      </label>
+    </div>
+    <button class="btn-submit" onclick="saveEditShow()" style="margin-top:8px">💾 保存修改</button>
+  </div>
+</div>
 </body>
 </html>
