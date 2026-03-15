@@ -665,7 +665,7 @@ function renderListingsTable(listings,users,pendingOnly){
   const userMap={};users.forEach(u=>{userMap[u.id]=u});
   return`<table>
     <thead><tr>
-      <th>ID</th><th>卖家</th><th>艺人</th><th>演出</th><th>日期</th><th>城市</th><th>张数</th><th>价格</th><th>类型</th><th>流水号</th><th>状态</th><th>时间</th><th>操作</th>
+      <th>ID</th><th>卖家</th><th>艺人</th><th>演出</th><th>日期</th><th>城市</th><th>张数</th><th>出售价</th><th>原票价</th><th>实名信息</th><th>类型</th><th>状态</th><th>时间</th><th>操作</th>
     </tr></thead>
     <tbody>${listings.map(l=>{
       const u=userMap[l.user_id];
@@ -683,15 +683,39 @@ function renderListingsTable(listings,users,pendingOnly){
         <td>${l.city}</td>
         <td>${l.qty}张</td>
         <td style="color:var(--gold);font-weight:700;font-family:var(--mono)">¥${Number(l.price).toLocaleString()}</td>
+        <td style="font-size:11px;color:var(--text2)">${l.orig?'¥'+Number(l.orig).toLocaleString():'-'}</td>
+        <td style="font-size:11px;max-width:120px">
+          ${l.seller_name?`<div style="font-weight:600">${l.seller_name}</div>`:''}
+          ${l.seller_idcard?`<div style="font-family:var(--mono);color:var(--text3);font-size:10px">${l.seller_idcard.slice(0,6)+'****'+l.seller_idcard.slice(14)}</div>`:'<span style="color:var(--text3)">未填写</span>'}
+        </td>
         <td style="font-size:11px">${l.ticket_type||'-'}</td>
-        <td class="txid-cell">${l.txid||'-'}</td>
         <td><span class="pill ${sm[l.status]||'pill-pending'}">${st[l.status]||l.status}</span></td>
         <td style="white-space:nowrap;color:var(--text3);font-size:11px;font-family:var(--mono)">${new Date(l.created_at).toLocaleString('zh-CN')}</td>
         <td style="white-space:nowrap">${actions}</td>
       </tr>`;
     }).join('')}</tbody></table>`;
 }
-async function approveListing(id){await sb.from('listings').update({status:'live'}).eq('id',id);loadAll();loadListings()}
+async function approveListing(id){
+  // 1. 查listing详情
+  const{data:l}=await sb.from('listings').select('*').eq('id',id).single();
+  if(!l){alert('找不到该上架记录');return}
+  // 2. 计算保证金（票价 × 数量 × 50%）
+  const depositAmt=Math.ceil((l.price||0)*(l.qty||1)*0.5);
+  // 3. 上架 + 记录保证金金额
+  await sb.from('listings').update({status:'live',deposit_amount:depositAmt}).eq('id',id);
+  // 4. 将保证金加入卖家余额（冻结状态）
+  if(l.user_id&&depositAmt>0){
+    const{data:u}=await sb.from('users').select('balance,balance_frozen').eq('id',l.user_id).single();
+    if(u){
+      await sb.from('users').update({
+        balance:(u.balance||0)+depositAmt,
+        balance_frozen:(u.balance_frozen||0)+depositAmt
+      }).eq('id',l.user_id);
+    }
+  }
+  loadAll();loadListings();
+  alert('✅ 已通过审核，保证金 ¥'+depositAmt+' 已计入卖家余额（冻结中）');
+}
 async function rejectListing(id){await sb.from('listings').update({status:'rejected'}).eq('id',id);loadAll();loadListings()}
 async function removeListing(id){
   if(!confirm('确认下架这张票？'))return;

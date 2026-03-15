@@ -536,7 +536,7 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="document.getElementById('deposit-overlay').classList.remove('show')"><i class="fa fa-times"></i></button>
     <div class="modal-title">🔒 上架保证金</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">为保障买家权益，上架需支付票款 <strong style="color:var(--gold)">50%</strong> 作为保证金，成功出票后全额退还。</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">上架需支付票款 <strong style="color:var(--gold)">50%</strong> 作为保证金，保证金将直接计入您的账户余额（冻结状态）。演出结束3天后自动解冻，随时可提现。</p>
     <div class="dep-box">
       <div class="dep-row"><span>出售单价</span><span id="dep-price"></span></div>
       <div class="dep-row"><span>上架张数</span><span id="dep-qty"></span></div>
@@ -580,12 +580,16 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
         <div class="order-show-event" id="oss-title"></div>
         <div class="order-show-sub" id="oss-sub"></div>
       </div>
-      <div class="order-sort-bar">
+      <!-- 日期+票面价筛选 -->
+      <div id="oss-filter-wrap" style="border-top:0.5px solid var(--border);padding:10px 16px 0">
+        <div id="oss-date-bar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+        <div id="oss-price-bar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px"></div>
+      </div>
+      <div class="order-sort-bar" style="border-top:0.5px solid var(--border)">
         <span style="font-size:11px;color:var(--text2);margin-right:4px">排序：</span>
         <button class="order-sort-btn active" onclick="sortSources('price',this)">价格最低</button>
-        <button class="order-sort-btn" onclick="sortSources('orig',this)">按面价</button>
       </div>
-      <div id="order-show-list" style="overflow-y:auto;max-height:55vh"></div>
+      <div id="order-show-list" style="overflow-y:auto;max-height:50vh"></div>
     </div>
     <!-- Step1: 填写观影人信息 -->
     <div id="order-form-view" style="display:none">
@@ -905,8 +909,26 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
 
 <!-- MY LISTINGS -->
 <div class="content page" id="page-my">
-  <div class="section-title">我的上架记录</div>
-  <div class="list-card"><div id="my-listings"></div></div>
+  <!-- 卖家数据概览 -->
+  <div id="seller-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px"></div>
+  <!-- Tab 切换：出票管理 / 我的订单 -->
+  <div style="display:flex;gap:0;margin-bottom:12px;background:var(--surface3);border-radius:var(--r-md);padding:3px">
+    <button id="my-tab-listings" onclick="switchMyTab('listings')" style="flex:1;padding:8px;background:var(--gold);color:var(--ink);border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans)">🎫 出票管理</button>
+    <button id="my-tab-sold" onclick="switchMyTab('sold')" style="flex:1;padding:8px;background:transparent;color:var(--text2);border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)">📦 已售订单</button>
+    <button id="my-tab-income" onclick="switchMyTab('income')" style="flex:1;padding:8px;background:transparent;color:var(--text2);border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)">💰 收益</button>
+  </div>
+  <!-- 出票管理 -->
+  <div id="my-panel-listings">
+    <div id="my-listings"></div>
+  </div>
+  <!-- 已售订单 -->
+  <div id="my-panel-sold" style="display:none">
+    <div id="my-sold-list"></div>
+  </div>
+  <!-- 收益 -->
+  <div id="my-panel-income" style="display:none">
+    <div id="my-income-content"></div>
+  </div>
 </div>
 
 <!-- MY ORDERS -->
@@ -955,7 +977,7 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
     <button class="modal-close" onclick="document.getElementById('withdraw-overlay').classList.remove('show')"><i class="fa fa-times"></i></button>
     <div class="modal-title">申请提现</div>
     <div style="background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:12px;color:var(--text2)">可提现余额</span>
+      <div style="font-size:12px;color:var(--text2)">可提现余额<span style="font-size:10px;color:var(--text3);margin-left:4px">（总余额 - 冻结中）</span></div>
       <span style="font-size:20px;font-weight:700;color:var(--gold);font-family:var(--mono)" id="wd-balance">¥0.00</span>
     </div>
     <div class="form-group" style="margin-bottom:14px">
@@ -1392,6 +1414,20 @@ function setTypeFilter(t,el){
 let currentSourceTickets=[];
 let currentSortMode='price';
 
+let ossDateFilter='';
+let ossPriceFilter=0;
+
+// 筛选按钮通用激活样式
+function activateFilterBtn(barId, val){
+  document.querySelectorAll('#'+barId+' button').forEach(b=>{
+    const isActive=b.dataset.val==val;
+    b.style.background=isActive?'var(--gold)':'transparent';
+    b.style.color=isActive?'var(--ink)':'var(--text2)';
+    b.style.borderColor=isActive?'var(--gold)':'var(--border-md)';
+    b.style.fontWeight=isActive?'700':'500';
+  });
+}
+
 function openOrderByShow(encodedTitle){
   if(!currentUser){openAuth('login');return}
   const title=decodeURIComponent(encodedTitle);
@@ -1404,13 +1440,64 @@ function openOrderByShow(encodedTitle){
   // 填写标题区域
   const sample=tickets[0];
   document.getElementById('oss-title').textContent=title;
-  const subEl=document.getElementById('oss-sub');
-  subEl.innerHTML=`<span>${sample.city}</span><span class="dot"></span><span>${sample.date}</span><span class="dot"></span><span style="color:var(--gold)">${tickets.length}个票源</span>`;
+  // 初始化筛选：默认第一天 + 最低面价
+  const dates=[...new Set(tickets.map(t=>t.date))].sort();
+  const origs=[...new Set(tickets.filter(t=>t.orig).map(t=>t.orig))].sort((a,b)=>a-b);
+  ossDateFilter=dates[0]||'';
+  ossPriceFilter=origs[0]||0;
+  // 渲染筛选条
+  renderFilterBars(dates,origs);
   renderSources('price');
+  const subEl=document.getElementById('oss-sub');
+  subEl.innerHTML='';
   document.getElementById('order-select-view').style.display='';
   document.getElementById('order-form-view').style.display='none';
   document.getElementById('order-success-view').classList.remove('show');
   document.getElementById('order-overlay').classList.add('show');
+}
+
+function renderFilterBars(dates, origs){
+  const btnBase='font-size:12px;padding:5px 12px;border-radius:20px;cursor:pointer;border:0.5px solid;font-family:var(--sans);transition:all .15s;';
+  const activeStyle='background:var(--gold);color:var(--ink);border-color:var(--gold);font-weight:700;';
+  const inactiveStyle='background:transparent;color:var(--text2);border-color:var(--border-md);font-weight:500;';
+
+  // 日期行
+  const dateBar=document.getElementById('oss-date-bar');
+  if(dates.length>1){
+    dateBar.style.display='flex';
+    dateBar.innerHTML='<span style="font-size:11px;color:var(--text3);white-space:nowrap;padding-top:4px;flex-shrink:0">日期：</span>'+
+      dates.map(d=>{
+        const isActive=d===ossDateFilter;
+        const label=d.slice(5).replace('-','/');
+        return`<button data-val="${d}" onclick="setDateFilter('${d}',this)" style="${btnBase}${isActive?activeStyle:inactiveStyle}">${label}</button>`;
+      }).join('');
+  }else{
+    dateBar.style.display='none';
+  }
+
+  // 票面价行
+  const priceBar=document.getElementById('oss-price-bar');
+  if(origs.length>1){
+    priceBar.style.display='flex';
+    priceBar.innerHTML='<span style="font-size:11px;color:var(--text3);white-space:nowrap;padding-top:4px;flex-shrink:0">票面价：</span>'+
+      origs.map(p=>{
+        const isActive=p==ossPriceFilter;
+        return`<button data-val="${p}" onclick="setPriceFilter(${p},this)" style="${btnBase}${isActive?activeStyle:inactiveStyle}">¥${p.toLocaleString()}</button>`;
+      }).join('');
+  }else{
+    priceBar.style.display='none';
+  }
+}
+
+function setDateFilter(val,btn){
+  ossDateFilter=val;
+  activateFilterBtn('oss-date-bar',val);
+  renderSources(currentSortMode);
+}
+function setPriceFilter(val,btn){
+  ossPriceFilter=Number(val);
+  activateFilterBtn('oss-price-bar',val);
+  renderSources(currentSortMode);
 }
 
 function sortSources(mode,btn){
@@ -1421,13 +1508,23 @@ function sortSources(mode,btn){
 }
 
 function renderSources(mode){
-  const tickets=[...currentSourceTickets];
+  let tickets=[...currentSourceTickets];
+  // 严格按日期过滤
+  if(ossDateFilter) tickets=tickets.filter(t=>t.date===ossDateFilter);
+  // 严格按面价过滤
+  if(ossPriceFilter>0) tickets=tickets.filter(t=>t.orig==ossPriceFilter);
+  // 更新副标题
+  const subEl=document.getElementById('oss-sub');
+  const dateLabel=ossDateFilter?ossDateFilter.slice(5).replace('-','/')+'  ':'';
+  const priceLabel=ossPriceFilter>0?'面价¥'+ossPriceFilter.toLocaleString()+'  ':'';
+  if(subEl) subEl.innerHTML=`<span style="color:var(--text2);font-size:11px">${dateLabel}${priceLabel}</span><span style="color:var(--gold)">${tickets.length}个票源</span>`;
   const list=document.getElementById('order-show-list');
   const TYPE_ICON={'录信息':['录信息','osi-icon-lx'],'邀请函秒发':['秒发','osi-icon-mf'],'邀请函代录':['代录','osi-icon-dl']};
   
   if(mode==='price'){
     // 按价格排序，全部平铺
     tickets.sort((a,b)=>a.price-b.price);
+    if(!tickets.length){list.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-size:13px">该日期/价位暂无票源</div>';return}
     const minP=tickets[0].price;
     list.innerHTML=tickets.map((l,i)=>{
       const isCheapest=l.price===minP;
@@ -1439,11 +1536,14 @@ function renderSources(mode){
       if(l.note&&l.note.includes('连座')) tags.push('<span class="osi-tag">连座</span>');
       return`<div class="order-tier" style="border-bottom:0.5px solid var(--border)">
         <div class="order-source-item" style="margin:10px 16px;margin-bottom:${i===tickets.length-1?'10px':'0'}" onclick="selectTicket(${l.id})">
-          <div class="osi-icon ${typeCls}">${typeLabel}</div>
+          <div class="osi-icon ${typeCls}" style="font-size:10px">${typeLabel}</div>
           <div class="osi-body">
-            <div class="osi-type">${l.ticket_type||'录信息'}</div>
-            ${tags.length?`<div class="osi-tags">${tags.join('')}</div>`:''}
-            ${l.note?`<div class="osi-seller">${l.note}</div>`:'<div class="osi-seller">面价 ¥'+( l.orig?l.orig.toLocaleString():'-')+'</div>'}
+            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+              <span style="font-size:14px;font-weight:700;color:var(--text)">${l.date?l.date.slice(5).replace('-','/')+'号':''}</span>
+              <span style="font-size:13px;font-weight:700;color:var(--gold)">面价 ¥${l.orig?l.orig.toLocaleString():'-'}</span>
+            </div>
+            ${tags.length?`<div class="osi-tags" style="margin-top:3px">${tags.join('')}</div>`:''}
+            ${l.note?`<div class="osi-seller" style="margin-top:2px">${l.note}</div>`:''}
           </div>
           <div class="osi-right">
             <div class="osi-price-big">¥${l.price.toLocaleString()}</div>
@@ -1455,6 +1555,7 @@ function renderSources(mode){
     }).join('');
   } else {
     // 按面价分组
+    if(!tickets.length){list.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-size:13px">该日期/价位暂无票源</div>';return}
     const groups={};
     tickets.forEach(l=>{
       const key=l.orig||0;
@@ -1563,7 +1664,7 @@ function renderViewerForms(){
         </div>
         <div class="viewer-field">
           <label class="viewer-label">身份证号</label>
-          <input class="viewer-input" id="v-id-${i}" placeholder="18位身份证号" maxlength="18" oninput="checkID(${i})" autocapitalize="characters" style="text-transform:uppercase"/>
+          <input class="viewer-input" id="v-id-${i}" placeholder="18位身份证号" maxlength="18" oninput="checkID(${i})" autocapitalize="characters" inputmode="text" style="text-transform:uppercase"/>
           <div class="viewer-err" id="v-id-err-${i}">身份证格式不正确</div>
         </div>
       </div>
@@ -1865,41 +1966,178 @@ function copyBankNo(){
 }
 
 // ── MY LISTINGS ──
+let myCurrentTab='listings';
+function switchMyTab(tab){
+  myCurrentTab=tab;
+  ['listings','sold','income'].forEach(t=>{
+    document.getElementById('my-panel-'+t).style.display=t===tab?'':'none';
+    const btn=document.getElementById('my-tab-'+t);
+    btn.style.background=t===tab?'var(--gold)':'transparent';
+    btn.style.color=t===tab?'var(--ink)':'var(--text2)';
+    btn.style.fontWeight=t===tab?'700':'600';
+  });
+  if(tab==='sold')renderSoldPanel();
+  if(tab==='income')renderIncomePanel();
+}
+
+function renderSellerStats(){
+  const live=myListings.filter(l=>l.status==='live').length;
+  const pending=myListings.filter(l=>l.status==='pending').length;
+  const sold=myListings.filter(l=>l.status==='sold').length;
+  const totalQty=myListings.filter(l=>l.status==='live').reduce((s,l)=>s+(l.qty||0),0);
+  const el=document.getElementById('seller-stats');
+  if(!el)return;
+  const items=[
+    {label:'上架中',val:live,color:'var(--green)'},
+    {label:'可售张数',val:totalQty+'张',color:'var(--gold)'},
+    {label:'待审核',val:pending,color:'var(--gold)'},
+    {label:'已售出',val:sold,color:'var(--text2)'}
+  ];
+  el.innerHTML=items.map(i=>`<div style="background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-md);padding:10px;text-align:center">
+    <div style="font-size:18px;font-weight:700;color:${i.color}">${i.val}</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:2px">${i.label}</div>
+  </div>`).join('');
+}
+
 function renderMyListings(){
+  renderSellerStats();
   const el=document.getElementById('my-listings');
-  if(!myListings.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-size:14px"><i class="fa fa-ticket-alt" style="font-size:28px;margin-bottom:10px;display:block"></i>暂无出票记录</div>';return}
-  const sm={live:['上架中','pill-live'],sold:['已售出','pill-sold'],pending:['审核中','pill-pending'],rejected:['已拒绝','pill-sold']};
-  el.innerHTML=myListings.map(l=>{
-    const[txt,cls]=sm[l.status]||['上架中','pill-live'];
-    // 已售出的显示出票凭证上传区
-    const proofHtml=l.status==='sold'?`
-      <div class="ticket-proof-box">
-        <div class="ticket-proof-title"><i class="fa fa-upload"></i>出票凭证${l.ticket_proof?'<span class="proof-notify-badge"><i class="fa fa-check"></i>已发票</span>':''}</div>
-        ${l.ticket_proof
-          ?`<img src="${l.ticket_proof}" class="proof-img" onclick="window.open('${l.ticket_proof}','_blank')" alt="出票凭证"/>`
-          :`<div class="proof-upload-area" id="proof-area-${l.id}">
-              <input type="file" accept="image/*" onchange="previewProof(${l.id},this)"/>
-              <i class="fa fa-image"></i>
-              <p>点击上传电子票/入场码截图</p>
-            </div>
-            <div id="proof-preview-${l.id}" style="display:none;margin-top:8px">
-              <img id="proof-img-preview-${l.id}" style="width:100%;max-width:260px;border-radius:8px;border:0.5px solid var(--border-md)"/>
-            </div>
-            <button class="btn-upload-proof" id="proof-btn-${l.id}" onclick="uploadProof(${l.id})" disabled>
-              <i class="fa fa-paper-plane"></i>发送给买家
-            </button>`
-        }
-      </div>`:''
-    return`<div class="list-row" style="flex-wrap:wrap;align-items:flex-start">
-      <div class="list-icon" style="margin-top:2px">🎫</div>
-      <div class="list-main">
-        <div class="list-name">${l.artist} · ${l.title}</div>
-        <div class="list-meta">${l.date} · ${l.city} · ${l.qty}张</div>
-        ${proofHtml}
+  const active=myListings.filter(l=>l.status!=='sold'&&l.status!=='rejected');
+  if(!active.length){
+    el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-size:14px"><i class="fa fa-ticket-alt" style="font-size:28px;margin-bottom:10px;display:block"></i>暂无出票记录<br><span style="font-size:12px;margin-top:6px;display:block">点击「上架」按钮开始出票</span></div>';
+    return;
+  }
+  // 按演出分组
+  const groups={};
+  active.forEach(l=>{
+    const key=l.title||l.artist;
+    if(!groups[key])groups[key]={title:key,artist:l.artist,city:l.city,img:l.img||'',listings:[]};
+    groups[key].listings.push(l);
+  });
+  const sm={live:'✅',pending:'⏳',rejected:'❌'};
+  const sc={live:'var(--green)',pending:'var(--gold)',rejected:'#e55'};
+  el.innerHTML=Object.values(groups).map(g=>`
+    <div style="background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-lg);margin-bottom:12px;overflow:hidden">
+      <!-- 演出标题头 -->
+      <div style="padding:12px 14px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px">
+        ${g.img?`<img src="${g.img}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`:'<div style="width:44px;height:44px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🎫</div>'}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">📍 ${g.city} · ${g.listings.length}条记录</div>
+        </div>
       </div>
-      <div class="list-right"><div class="list-price">¥${l.price.toLocaleString()}</div><span class="pill ${cls}">${txt}</span></div>
+      <!-- 票源列表 -->
+      ${g.listings.map(l=>`
+        <div style="padding:10px 14px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span style="font-size:12px;font-weight:700">${l.date?l.date.slice(5).replace('-','/')+'号':''}</span>
+              <span style="font-size:11px;color:var(--text3)">面价¥${(l.orig||0).toLocaleString()}</span>
+              <span style="font-size:11px;color:var(--text3)">${l.ticket_type||'录信息'}</span>
+              <span style="font-size:11px;font-weight:700;color:${sc[l.status]||'var(--text2)'}">${sm[l.status]||''} ${l.status==='live'?'上架中':l.status==='pending'?'审核中':'已拒绝'}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">${l.qty}张 · ${l.note||''}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:16px;font-weight:700;color:var(--gold)">¥${l.price.toLocaleString()}</div>
+            <div style="display:flex;gap:5px;margin-top:5px;justify-content:flex-end">
+              <button onclick="openEditPrice(${l.id},${l.price})" style="font-size:11px;padding:3px 8px;background:rgba(212,168,71,0.1);color:var(--gold);border:0.5px solid var(--gold-border);border-radius:5px;cursor:pointer">改价</button>
+              ${l.status==='live'?`<button onclick="takedownListing(${l.id})" style="font-size:11px;padding:3px 8px;background:rgba(255,80,80,0.08);color:#e55;border:0.5px solid rgba(220,50,50,0.3);border-radius:5px;cursor:pointer">下架</button>`:''}
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function renderSoldPanel(){
+  const el=document.getElementById('my-sold-list');
+  const sold=myListings.filter(l=>l.status==='sold');
+  if(!sold.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3);font-size:13px">暂无已售出记录</div>';return}
+  el.innerHTML=sold.map(l=>{
+    const proofSection=l.ticket_proof
+      ?`<div style="margin-top:8px"><img src="${l.ticket_proof}" style="width:100%;max-width:200px;border-radius:6px;border:0.5px solid var(--border-md)" onclick="window.open('${l.ticket_proof}','_blank')"/><div style="font-size:11px;color:var(--green);margin-top:4px">✅ 已发出入场凭证</div></div>`
+      :`<div style="margin-top:8px">
+          <div class="proof-upload-area" id="proof-area-${l.id}">
+            <input type="file" accept="image/*" onchange="previewProof(${l.id},this)"/>
+            <i class="fa fa-image"></i><p>上传电子票/入场码截图发给买家</p>
+          </div>
+          <div id="proof-preview-${l.id}" style="display:none;margin-top:6px"><img id="proof-img-preview-${l.id}" style="width:100%;max-width:180px;border-radius:6px"/></div>
+          <button class="btn-upload-proof" id="proof-btn-${l.id}" onclick="uploadProof(${l.id})" disabled style="margin-top:6px"><i class="fa fa-paper-plane"></i> 发送给买家</button>
+        </div>`;
+    return`<div style="background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:13px;font-weight:700">${l.artist} · ${l.title}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">${l.date} · ${l.city} · ${l.qty}张</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:15px;font-weight:700;color:var(--gold)">¥${l.price.toLocaleString()}</div>
+          <div style="font-size:10px;color:var(--green)">已售出</div>
+        </div>
+      </div>
+      ${proofSection}
     </div>`;
   }).join('');
+}
+
+function renderIncomePanel(){
+  const el=document.getElementById('my-income-content');
+  const sold=myListings.filter(l=>l.status==='sold');
+  const totalIncome=sold.reduce((s,l)=>s+(l.price||0)*(l.qty||1),0);
+  const live=myListings.filter(l=>l.status==='live');
+  const pendingIncome=live.reduce((s,l)=>s+(l.price||0)*(l.qty||1),0);
+  const frozen=currentUser.balance_frozen||0;
+  const available=Math.max(0,(currentUser.balance||0)-frozen);
+  el.innerHTML=`
+    <div style="background:linear-gradient(135deg,#1a1508,#2a2010);border:0.5px solid var(--gold-border);border-radius:var(--r-lg);padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;color:rgba(212,168,71,0.6);margin-bottom:8px">💰 账户余额</div>
+      <div style="font-size:28px;font-weight:700;color:var(--gold)">¥${(currentUser.balance||0).toFixed(2)}</div>
+      <div style="display:flex;gap:16px;margin-top:8px;font-size:12px">
+        <span style="color:var(--green)">可提现 ¥${available.toFixed(2)}</span>
+        <span style="color:var(--text3)">冻结中 ¥${frozen.toFixed(2)}</span>
+      </div>
+      <button onclick="openWithdraw()" style="margin-top:10px;padding:8px 20px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--r-md);font-size:13px;font-weight:700;cursor:pointer">申请提现</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:var(--gold)">¥${totalIncome.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">已售总收益</div>
+      </div>
+      <div style="background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:var(--text2)">¥${pendingIncome.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">在售潜在收益</div>
+      </div>
+    </div>
+    <div style="background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:8px">📊 出票统计</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">上架中</span><span>${myListings.filter(l=>l.status==='live').length}条 / ${myListings.filter(l=>l.status==='live').reduce((s,l)=>s+(l.qty||0),0)}张</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid var(--border)"><span style="color:var(--text3)">已售出</span><span style="color:var(--green)">${sold.length}条</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0"><span style="color:var(--text3)">待审核</span><span style="color:var(--gold)">${myListings.filter(l=>l.status==='pending').length}条</span></div>
+    </div>`;
+}
+
+// ── 我的出票管理 ──
+function openEditPrice(id, currentPrice){
+  const newPrice=prompt('请输入新的出售价格（元）：', currentPrice);
+  if(!newPrice||isNaN(newPrice)||parseFloat(newPrice)<1)return;
+  updateListingPrice(id, parseFloat(newPrice));
+}
+async function updateListingPrice(id, price){
+  const{error}=await sb.from('listings').update({price}).eq('id',id);
+  if(error){alert('改价失败：'+error.message);return}
+  const idx=myListings.findIndex(l=>l.id===id);
+  if(idx>-1){myListings[idx].price=price;}
+  renderMyListings();
+  alert('✅ 价格已更新为 ¥'+price.toLocaleString());
+}
+async function takedownListing(id){
+  if(!confirm('确认下架这个票源？下架后买家将无法看到。'))return;
+  const{error}=await sb.from('listings').update({status:'rejected'}).eq('id',id);
+  if(error){alert('下架失败：'+error.message);return}
+  const idx=myListings.findIndex(l=>l.id===id);
+  if(idx>-1)myListings[idx].status='rejected';
+  renderMyListings();
+  alert('✅ 已下架');
 }
 
 let proofFiles={};
@@ -2015,18 +2253,50 @@ function updateBalanceDisplay(balance,frozen){
   const frozenEl=document.getElementById('p-frozen');
   if(balanceVisible){
     balEl.textContent=Number(balance).toFixed(2);
-    frozenEl.textContent='冻结中：¥'+Number(frozen).toFixed(2)+'（待结算）';
+    frozenEl.textContent='冻结中：¥'+Number(frozen).toFixed(2)+'（演出结束3天后可提现）';
   }else{
     balEl.textContent='****';
-    frozenEl.textContent='冻结中：****';
+    frozenEl.textContent='冻结中：****（演出结束3天后解冻）';
   }
 }
 
-function toggleBalanceVisible(){
+async function toggleBalanceVisible(){
   balanceVisible=!balanceVisible;
   const icon=document.getElementById('balance-eye-icon');
   icon.className=balanceVisible?'fa fa-eye':'fa fa-eye-slash';
+  await checkAndUnfreeze();
   updateBalanceDisplay(currentUser.balance||0,currentUser.balance_frozen||0);
+}
+
+// ── 解冻到期保证金 ──
+async function checkAndUnfreeze(){
+  if(!currentUser||!currentUser.id)return;
+  // 查该用户所有已上架且演出日期已过3天的listings
+  const now=new Date();
+  const{data:listings}=await sb.from('listings').select('id,date,deposit_amount,status').eq('user_id',currentUser.id).in('status',['live','sold']);
+  if(!listings||!listings.length)return;
+  let totalUnfreeze=0;
+  const toUpdate=[];
+  listings.forEach(l=>{
+    if(!l.deposit_amount||l.deposit_amount<=0)return;
+    if(!l.date)return;
+    const showDate=new Date(l.date);
+    const daysSince=(now-showDate)/(1000*60*60*24);
+    // 演出结束3天后解冻
+    if(daysSince>=3){
+      totalUnfreeze+=l.deposit_amount;
+      toUpdate.push(l.id);
+    }
+  });
+  if(totalUnfreeze<=0||!toUpdate.length)return;
+  // 解冻：减少balance_frozen
+  const newFrozen=Math.max(0,(currentUser.balance_frozen||0)-totalUnfreeze);
+  const{error}=await sb.from('users').update({balance_frozen:newFrozen}).eq('id',currentUser.id);
+  if(!error){
+    currentUser.balance_frozen=newFrozen;
+    // 标记这些listing的保证金已解冻
+    await sb.from('listings').update({deposit_amount:0}).in('id',toUpdate);
+  }
 }
 
 // ── 银行卡 ──
@@ -2093,11 +2363,26 @@ async function deleteBank(id){
 }
 
 // ── 提现 ──
-function openWithdraw(){
-  const balance=currentUser.balance||0;
-  document.getElementById('wd-balance').textContent='¥'+Number(balance).toFixed(2);
+async function openWithdraw(){
+  // 先检查并解冻到期保证金
+  await checkAndUnfreeze();
+  // 刷新余额
+  const{data:u}=await sb.from('users').select('balance,balance_frozen').eq('id',currentUser.id).single();
+  if(u){currentUser.balance=u.balance||0;currentUser.balance_frozen=u.balance_frozen||0;}
+  updateBalanceDisplay(currentUser.balance,currentUser.balance_frozen);
+  // 可提现 = 总余额 - 冻结中
+  const available=Math.max(0,(currentUser.balance||0)-(currentUser.balance_frozen||0));
+  const frozen=currentUser.balance_frozen||0;
+  document.getElementById('wd-balance').textContent='¥'+available.toFixed(2);
+  // 如果有冻结，在提现弹窗加提示
+  const errEl=document.getElementById('wd-err');
+  if(frozen>0){
+    errEl.textContent='注：¥'+frozen.toFixed(2)+' 保证金冻结中，演出结束3天后自动解冻可提现';
+    errEl.style.display='block';errEl.style.color='var(--text3)';
+  }else{
+    errEl.style.display='none';
+  }
   document.getElementById('wd-amount').value='';
-  document.getElementById('wd-err').style.display='none';
   // 展示默认银行卡
   const bankSel=document.getElementById('wd-bank-select');
   if(myBankCards.length){
@@ -2114,8 +2399,9 @@ async function submitWithdraw(){
   const balance=currentUser.balance||0;
   const errEl=document.getElementById('wd-err');
   if(!myBankCards.length){errEl.textContent='请先绑定银行卡';errEl.style.display='block';return}
-  if(!amount||amount<10){errEl.textContent='最低提现金额为 ¥10';errEl.style.display='block';return}
-  if(amount>balance){errEl.textContent='提现金额不能超过可用余额';errEl.style.display='block';return}
+  const available=Math.max(0,(currentUser.balance||0)-(currentUser.balance_frozen||0));
+  if(!amount||amount<10){errEl.textContent='最低提现金额为 ¥10';errEl.style.display='block';errEl.style.color='var(--red)';return}
+  if(amount>available){errEl.textContent='提现金额不能超过可提现余额 ¥'+available.toFixed(2);errEl.style.display='block';errEl.style.color='var(--red)';return}
   errEl.style.display='none';
   const card=myBankCards[0];
   const{error}=await sb.from('withdrawals').insert({
@@ -2185,7 +2471,7 @@ init();
         </div>
         <div class="form-group" style="margin-bottom:12px">
           <label class="form-label">身份证号</label>
-          <input class="form-input" id="sa-idcard" placeholder="18位身份证号" maxlength="18" oninput="checkSaID()" autocapitalize="characters" style="text-transform:uppercase"/>
+          <input class="form-input" id="sa-idcard" placeholder="18位身份证号" maxlength="18" oninput="checkSaID()" autocapitalize="characters" style="text-transform:uppercase" inputmode="text"/>
           <div style="font-size:11px;color:var(--red);margin-top:3px;display:none" id="sa-idcard-err">身份证格式不正确</div>
         </div>
         <div class="form-group" style="margin-bottom:16px">
