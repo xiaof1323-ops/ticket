@@ -526,7 +526,11 @@ async function importBuiltinShows(){
   // 查已有数据，按title去重
   const{data:existing}=await sb.from('shows').select('title');
   const existTitles=new Set((existing||[]).map(s=>s.title));
-  const toInsert=BUILTIN.filter(s=>!existTitles.has(s.title)).map(s=>({...s,date:s.dates[0]}));
+  // 去掉img字段避免schema缓存问题，img需先在Supabase加列
+  const toInsert=BUILTIN.filter(s=>!existTitles.has(s.title)).map(s=>{
+    const{img,...rest}=s;
+    return{...rest,date:s.dates[0]};
+  });
   if(!toInsert.length){alert('所有内置演出已存在，无需重复导入');return}
   const{error}=await sb.from('shows').insert(toInsert);
   if(error){alert('导入失败：'+error.message);return}
@@ -842,13 +846,18 @@ function closeUserDetail(){
   document.getElementById('user-detail-overlay').style.display='none';
 }
 async function removeUser(id,name){
-  if(!confirm('确认移除用户「'+name+'」？\n将同时清除该用户的上架记录和银行卡信息'))return;
-  // 先清除关联数据（外键约束）
+  if(!confirm('确认移除用户「'+name+'」？\n将同时清除该用户的上架记录、订单和银行卡信息'))return;
+  // 按外键依赖顺序依次删除关联数据
   await sb.from('bank_cards').delete().eq('user_id',id);
+  await sb.from('withdrawals').delete().eq('user_id',id);
   await sb.from('listings').delete().eq('user_id',id);
-  // 再删除用户
+  await sb.from('orders').delete().eq('user_id',id);
+  // 最后删用户
   const{error}=await sb.from('users').delete().eq('id',id);
-  if(error){alert('移除失败：'+error.message+'\n\n如仍失败，请在Supabase执行：\nALTER TABLE listings DROP CONSTRAINT listings_user_id_fkey;');return}
+  if(error){
+    alert('移除失败：'+error.message+'\n\n请在Supabase SQL编辑器执行以下语句后重试：\nALTER TABLE listings DROP CONSTRAINT IF EXISTS listings_user_id_fkey;\nALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_user_id_fkey;');
+    return;
+  }
   alert('已成功移除用户 '+name);
   loadUsers();
 }
