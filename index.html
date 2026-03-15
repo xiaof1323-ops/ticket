@@ -715,10 +715,10 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
 <!-- MOBILE BOTTOM NAV -->
 <div class="bottom-nav">
   <button class="bn-item active" id="bn-home" onclick="switchTab('home')">
-    <i class="fa fa-home"></i>大厅
+    <i class="fa fa-home"></i>演出
   </button>
   <button class="bn-item" id="bn-my" onclick="needLogin('my')">
-    <i class="fa fa-ticket-alt"></i>出票
+    <i class="fa fa-ticket-alt"></i>记录
   </button>
   <button class="bn-item bn-sell" onclick="needLogin('sell')">
     <div class="bn-sell-btn"><i class="fa fa-plus"></i></div>上架
@@ -879,13 +879,28 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
         <textarea class="form-textarea" id="f-note" placeholder="例：可小刀 · 急出 · 连座"></textarea>
       </div>
     </div>
+    <div class="form-card" style="border-color:var(--gold-border);background:rgba(212,168,71,0.04)">
+      <div class="form-card-title" style="color:var(--gold)">📋 营业性演出资格证（必填）</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7">根据规定，出售演出票务需提供有效的营业性演出许可证或主办方授权书。平台将对证件进行审核，审核通过后门票方可上架展示。</p>
+      <div class="form-group">
+        <label class="form-label">上传证件照片</label>
+        <div class="upload-area" id="cert-upload-area">
+          <input type="file" id="f-cert" accept="image/*,.pdf" onchange="previewCert(this)"/>
+          <i class="fa fa-file-alt" style="font-size:22px;color:var(--text3);margin-bottom:5px;display:block"></i>
+          <p>点击上传营业性演出许可证 / 主办方授权书</p>
+          <p style="font-size:11px;color:var(--text3);margin-top:3px">支持 JPG / PNG / PDF，大小不超过10MB</p>
+          <div class="upload-name" id="f-cert-name" style="color:var(--gold)"></div>
+        </div>
+        <div id="f-cert-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传营业性演出资格证</div>
+      </div>
+    </div>
     <button class="btn-submit" onclick="submitListing()">确认上架门票</button>
   </div>
 </div>
 
 <!-- MY LISTINGS -->
 <div class="content page" id="page-my">
-  <div class="section-title">我的出票记录</div>
+  <div class="section-title">我的上架记录</div>
   <div class="list-card"><div id="my-listings"></div></div>
 </div>
 
@@ -1080,14 +1095,14 @@ function initStaticShows(){
     '万兽之王巡回演唱会 长沙站':[317,517,717,917,1317,1517,1717],
     '万兽之王巡回演唱会 青岛站':[317,517,717,917,1317,1517,1717],
     '万兽之王巡回演唱会 太原站':[317,517,717,917,1317,1517,1717],
-    '进化演唱会 深圳站':[480,680,980,1280,1580,1980],
-    '进化演唱会 武汉站':[380,680,880,980,1280,1680],
-    '进化演唱会 北京站':[480,780,1080,1380,1680,1980],
-    '进化演唱会 成都站':[480,680,980,1280,1580,1980],
+    '进化演唱会 深圳站':[380,580,780,980,1380,1680],
+    '进化演唱会 武汉站':[380,580,780,980,1380,1680],
+    '进化演唱会 北京站':[380,580,780,980,1380,1680],
+    '进化演唱会 成都站':[380,580,780,980,1380,1680],
     '吉祥如意演唱会 厦门站':[280,380,480,580,680,780],
     '吉祥如意演唱会 郑州站':[280,380,480,580,680,780],
     '吉祥如意演唱会 深圳站':[280,380,480,580,680,780],
-    '未·LIVE 开往1982 北京站':[480,580,680,780,880,1080,1280],
+    '未·LIVE 开往1982 北京站':[380,480,580,680,880,1280,1680],
     'EXO PLANET #6 EXhOrizon 澳门站':[688,888,1088,1388,1888],
   };
   const sel=document.getElementById('f-artist');
@@ -1502,8 +1517,7 @@ function goToStep2(){
   // 渲染核对信息
   const t=orderTicket;
   document.getElementById('o-name2').textContent=t.title;
-  document.getElementById('o-meta2').textContent=`${t.date} · ${t.city}
-${t.ticket_type||'录信息'} · ${orderQty}张`;
+  document.getElementById('o-meta2').textContent=`${t.date} · ${t.city}\n${t.ticket_type||'录信息'} · ${orderQty}张${t.orig?' · 面价¥'+t.orig.toLocaleString():''}`;
   const confirmWrap=document.getElementById('o-confirm-viewers');
   let html='';
   for(let i=0;i<orderQty;i++){
@@ -1539,6 +1553,16 @@ function updateOrderPrice(){
   document.getElementById('o-qty-show').textContent='×'+orderQty;
   document.getElementById('o-unit-price').textContent='¥'+t.price.toLocaleString();
   document.getElementById('o-total').textContent='¥'+total.toLocaleString();
+}
+function previewCert(input){
+  const file=input.files[0];
+  const nameEl=document.getElementById('f-cert-name');
+  const errEl=document.getElementById('f-cert-err');
+  if(file){
+    nameEl.textContent='✓ 已选择：'+file.name;
+    errEl.style.display='none';
+    document.getElementById('cert-upload-area').style.borderColor='var(--gold)';
+  }
 }
 function updateDepFileName(input){
   document.getElementById('dep-file-name').textContent=input.files[0]?input.files[0].name:'';
@@ -1640,6 +1664,14 @@ function submitListing(){
   if(!artist||idx===''){alert('请选择艺人和场次');return}
   if(!date){alert('请选择演出日期');return}
   if(!price){alert('请填写出售价格');return}
+  // 验证资格证
+  const certInput=document.getElementById('f-cert');
+  if(!certInput||!certInput.files[0]){
+    document.getElementById('f-cert-err').style.display='block';
+    document.getElementById('cert-upload-area').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  document.getElementById('f-cert-err').style.display='none';
   const s=SHOW_MAP[artist][idx];
   const qty=parseInt(document.getElementById('f-qty').value);
   const ticket_type=document.getElementById('f-tickettype').value;
@@ -1662,12 +1694,21 @@ async function confirmDeposit(){
   const file=fileInput?fileInput.files[0]:null;
   if(!file){document.getElementById('dep-screenshot-err').style.display='block';return}
   document.getElementById('dep-screenshot-err').style.display='none';
-  // 上传截图
+  // 上传付款截图
   const filename=`deposit_${Date.now()}_${currentUser.id}.${file.name.split('.').pop()}`;
   const{error:upErr}=await sb.storage.from('payments').upload(filename,file);
   if(upErr){alert('截图上传失败，请重试');return}
   const screenshotUrl=`${SB_URL}/storage/v1/object/public/payments/${filename}`;
-  const{data,error}=await sb.from('listings').insert({...pendingListing,deposit_screenshot:screenshotUrl,status:'pending'}).select().single();
+  // 上传资格证
+  let certUrl='';
+  const certInput=document.getElementById('f-cert');
+  if(certInput&&certInput.files[0]){
+    const certFile=certInput.files[0];
+    const certFilename=`cert_${Date.now()}_${currentUser.id}.${certFile.name.split('.').pop()}`;
+    const{error:certErr}=await sb.storage.from('payments').upload(certFilename,certFile);
+    if(!certErr)certUrl=`${SB_URL}/storage/v1/object/public/payments/${certFilename}`;
+  }
+  const{data,error}=await sb.from('listings').insert({...pendingListing,deposit_screenshot:screenshotUrl,cert_url:certUrl,status:'pending'}).select().single();
   if(error){alert('上架失败，请重试');return}
   myListings.unshift(data);
   document.getElementById('deposit-overlay').classList.remove('show');
@@ -1682,6 +1723,7 @@ async function confirmDeposit(){
   document.getElementById('f-price').value='';
   document.getElementById('f-orig').innerHTML='<option value="">-- 请先选择场次 --</option>';
   document.getElementById('f-note').value='';
+  if(certInput){certInput.value='';document.getElementById('f-cert-name').textContent='';}
   document.getElementById('min-price-hint').style.display='none';
   document.getElementById('fee-preview').classList.remove('show');
   pendingListing=null;
