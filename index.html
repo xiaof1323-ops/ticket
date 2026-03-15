@@ -248,7 +248,10 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
 .order-tier-body{padding:0 16px 12px}
 .order-source-item{display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface3);border-radius:var(--r-md);margin-top:8px;border:0.5px solid var(--border);transition:all .15s;cursor:pointer}
 .order-source-item:hover{border-color:var(--gold-border);background:rgba(212,168,71,0.04)}
-.osi-icon{width:36px;height:36px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.osi-icon{min-width:52px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;padding:0 8px;white-space:nowrap}
+.osi-icon-lx{background:rgba(212,168,71,0.12);color:var(--gold);border:0.5px solid var(--gold-border)}
+.osi-icon-mf{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
+.osi-icon-dl{background:rgba(100,149,237,0.12);color:#6495ed;border:0.5px solid rgba(100,149,237,0.3)}
 .osi-body{flex:1;min-width:0}
 .osi-type{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
 .osi-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
@@ -580,10 +583,9 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
         </div>
         <div id="o-screenshot-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请上传付款截图</div>
       </div>
-      <div class="form-group" style="margin-bottom:14px">
-        <label class="form-label">银行流水号</label>
-        <input class="form-input" id="o-txid" placeholder="付款流水号（纯数字，12位以上）" inputmode="numeric"/>
-        <div id="o-txid-err" style="font-size:11px;color:var(--red);margin-top:4px;display:none">请输入正确的流水号</div>
+      <div style="background:rgba(212,168,71,0.08);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.7">
+        ⚠️ <strong style="color:var(--gold)">付款时请务必备注演出信息</strong><br>
+        备注格式：<span style="color:var(--text);font-family:var(--mono)" id="o-pay-remark-tip"></span>
       </div>
       <button class="btn-pay" onclick="doPay()">提交付款凭证</button>
     </div>
@@ -1060,6 +1062,8 @@ async function doRegister(){
 }
 async function loginAs(u){
   currentUser=u;
+  // 保存登录状态到本地
+  localStorage.setItem('ticket_user_id', u.id);
   document.getElementById('nav-guest').style.display='none';
   document.getElementById('nav-user').style.display='flex';
   document.getElementById('nav-avatar').textContent=u.name.charAt(0);
@@ -1075,6 +1079,7 @@ async function loginAs(u){
 }
 function doLogout(){
   currentUser=null;myListings=[];myOrders=[];
+  localStorage.removeItem('ticket_user_id');
   document.getElementById('nav-guest').style.display='flex';
   document.getElementById('nav-user').style.display='none';
   document.getElementById('nav-sell-btn').style.display='none';
@@ -1234,7 +1239,7 @@ function sortSources(mode,btn){
 function renderSources(mode){
   const tickets=[...currentSourceTickets];
   const list=document.getElementById('order-show-list');
-  const TYPE_ICON={'录信息':'🎫','邀请函秒发':'⚡','邀请函代录':'📋'};
+  const TYPE_ICON={'录信息':['录信息','osi-icon-lx'],'邀请函秒发':['秒发','osi-icon-mf'],'邀请函代录':['代录','osi-icon-dl']};
   
   if(mode==='price'){
     // 按价格排序，全部平铺
@@ -1242,7 +1247,7 @@ function renderSources(mode){
     const minP=tickets[0].price;
     list.innerHTML=tickets.map((l,i)=>{
       const isCheapest=l.price===minP;
-      const typeIcon=TYPE_ICON[l.ticket_type]||'🎫';
+      const [typeLabel,typeCls]=TYPE_ICON[l.ticket_type]||['其他','osi-icon-lx'];
       const tags=[];
       if(isCheapest&&i===0) tags.push('<span class="osi-tag green">最低价</span>');
       if(l.ticket_type==='邀请函秒发') tags.push('<span class="osi-tag green">秒发</span>');
@@ -1295,14 +1300,14 @@ function renderSources(mode){
         </div>
         <div class="order-tier-body" id="${tierId}">
           ${grpTickets.map(l=>{
-            const typeIcon=TYPE_ICON[l.ticket_type]||'🎫';
+            const [typeLabel,typeCls]=TYPE_ICON[l.ticket_type]||['其他','osi-icon-lx'];
             const tags=[];
             if(l.price===minGrpP) tags.push('<span class="osi-tag green">本档最低</span>');
             if(l.ticket_type==='邀请函秒发') tags.push('<span class="osi-tag green">秒发</span>');
             if(l.note&&l.note.includes('急出')) tags.push('<span class="osi-tag orange">急出</span>');
             if(l.note&&l.note.includes('连座')) tags.push('<span class="osi-tag">连座</span>');
             return`<div class="order-source-item" onclick="selectTicket(${l.id})">
-              <div class="osi-icon">${typeIcon}</div>
+              <div class="osi-icon ${typeCls}">${typeLabel}</div>
               <div class="osi-body">
                 <div class="osi-type">${l.ticket_type||'录信息'}</div>
                 ${tags.length?`<div class="osi-tags">${tags.join('')}</div>`:''}
@@ -1334,7 +1339,13 @@ function selectTicket(id){
   orderTicket=t;orderQty=1;
   document.getElementById('o-name').textContent=t.title;
   document.getElementById('o-meta').textContent=`${t.date} · ${t.city}\n${t.ticket_type||'录信息'} · 剩余${t.qty}张`;
-  document.getElementById('o-remark').textContent=`${t.artist} ${t.city}站 ${t.date}`;
+  // 备注格式：艺人 城市站 日期(只取日) 价格 备注
+  const dateDay=t.date?t.date.replace(/^\d{4}-\d{2}-/,'')+'号':'';
+  const notePart=t.note?` ${t.note}`:'';
+  const remarkText=`${t.artist} ${t.city}站 ${dateDay}¥${t.price.toLocaleString()}${notePart}`;
+  document.getElementById('o-remark').textContent=remarkText;
+  const tipEl=document.getElementById('o-pay-remark-tip');
+  if(tipEl)tipEl.textContent=remarkText;
   updateOrderPrice();
   document.getElementById('order-select-view').style.display='none';
   document.getElementById('order-form-view').style.display='';
@@ -1353,13 +1364,10 @@ function updateFileName(input){
 }
 async function doPay(){
   const t=orderTicket,total=t.price*orderQty;
-  const txid=document.getElementById('o-txid').value.trim();
   const fileInput=document.getElementById('o-screenshot');
   const file=fileInput.files[0];
-  let ok=true;
-  if(!file){document.getElementById('o-screenshot-err').style.display='block';ok=false}else document.getElementById('o-screenshot-err').style.display='none';
-  if(!txid||!/^\d{12,}$/.test(txid)){document.getElementById('o-txid-err').style.display='block';ok=false}else document.getElementById('o-txid-err').style.display='none';
-  if(!ok)return;
+  if(!file){document.getElementById('o-screenshot-err').style.display='block';return}
+  document.getElementById('o-screenshot-err').style.display='none';
   const filename=`order_${Date.now()}_${currentUser.id}.${file.name.split('.').pop()}`;
   const{error:uploadErr}=await sb.storage.from('payments').upload(filename,file);
   if(uploadErr){alert('截图上传失败，请重试');return}
@@ -1368,12 +1376,12 @@ async function doPay(){
     user_id:currentUser.id,listing_id:t.id,
     artist:t.artist,title:t.title,date:t.date,city:t.city,
     zone:t.zone||'',qty:orderQty,price:t.price,total,
-    status:'待审核',pay_screenshot:screenshotUrl,pay_txid:txid,pay_status:'待审核'
+    status:'待审核',pay_screenshot:screenshotUrl,pay_status:'待审核'
   }).select().single();
   if(error){alert('提交失败，请重试');return}
   myOrders.unshift(data);
   document.getElementById('o-orderid').textContent='TJ'+data.id;
-  document.getElementById('o-txid').value='';fileInput.value='';
+  fileInput.value='';
   document.getElementById('o-file-name').textContent='';
   document.getElementById('order-form-view').style.display='none';
   document.getElementById('order-success-view').classList.add('show');
@@ -1782,6 +1790,12 @@ async function init(){
   const data=await getAllListings();
   allTickets=data;
   renderTickets();
+  // 自动恢复登录状态
+  const savedId=localStorage.getItem('ticket_user_id');
+  if(savedId){
+    const{data:u}=await sb.from('users').select('*').eq('id',savedId).single();
+    if(u)await loginAs(u);
+  }
   // update user count
   const{count}=await sb.from('users').select('*',{count:'exact',head:true});
   if(count)document.getElementById('stat-users').textContent=count;
