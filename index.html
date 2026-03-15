@@ -809,6 +809,22 @@ body{font-family:var(--sans);background:var(--ink);color:var(--text);min-height:
   <div id="sell-toast" class="toast"><span>✅ 门票已提交审核，管理员审核通过后将显示到前台！</span></div>
   <div class="section-title">上架我的门票</div>
   <div class="sell-form">
+    <div class="form-card" style="border-color:var(--gold-border);background:rgba(212,168,71,0.03)">
+      <div class="form-card-title" style="color:var(--gold)">🪪 出票人实名认证（必填）</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">根据演出行业监管要求，出票人须提供真实身份信息及营业性演出许可证，平台审核后方可上架。</p>
+      <div class="viewer-input-row">
+        <div class="viewer-field">
+          <label class="viewer-label">真实姓名</label>
+          <input class="viewer-input" id="s-realname" placeholder="请输入真实姓名" oninput="clearSellIdErr()"/>
+          <div class="viewer-err" id="s-realname-err">请输入真实姓名</div>
+        </div>
+        <div class="viewer-field">
+          <label class="viewer-label">身份证号</label>
+          <input class="viewer-input" id="s-idcard" placeholder="18位身份证号" maxlength="18" oninput="checkSellID()"/>
+          <div class="viewer-err" id="s-idcard-err">身份证格式不正确</div>
+        </div>
+      </div>
+    </div>
     <div class="form-card">
       <div class="form-card-title">选择演出</div>
       <div class="form-group">
@@ -1475,6 +1491,22 @@ function renderViewerForms(){
     </div>`;
   }
 }
+function clearSellIdErr(){
+  document.getElementById('s-realname-err').classList.remove('show');
+  document.getElementById('s-realname').className='viewer-input';
+}
+function checkSellID(){
+  const input=document.getElementById('s-idcard');
+  const val=input.value.trim();
+  const errEl=document.getElementById('s-idcard-err');
+  if(val.length===0){input.className='viewer-input';errEl.classList.remove('show');return}
+  if(validateID(val)){
+    input.className='viewer-input valid';errEl.classList.remove('show');
+  }else{
+    input.className='viewer-input error';errEl.classList.add('show');
+    errEl.textContent='身份证格式不正确，请检查';
+  }
+}
 function clearVErr(i){
   document.getElementById('v-name-err-'+i).classList.remove('show');
   document.getElementById('v-name-'+i).classList.remove('error');
@@ -1661,6 +1693,22 @@ function submitListing(){
   const price=parseFloat(document.getElementById('f-price').value);
   const orig=parseFloat(document.getElementById('f-orig').value)||price;
   const date=document.getElementById('f-date').value;
+  // 实名认证验证
+  const realname=document.getElementById('s-realname').value.trim();
+  const idcard=document.getElementById('s-idcard').value.trim();
+  if(!realname){
+    document.getElementById('s-realname-err').classList.add('show');
+    document.getElementById('s-realname').className='viewer-input error';
+    document.getElementById('s-realname').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  if(!validateID(idcard)){
+    document.getElementById('s-idcard-err').classList.add('show');
+    document.getElementById('s-idcard').className='viewer-input error';
+    document.getElementById('s-idcard-err').textContent=idcard?'身份证格式不正确':'请输入身份证号';
+    document.getElementById('s-idcard').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   if(!artist||idx===''){alert('请选择艺人和场次');return}
   if(!date){alert('请选择演出日期');return}
   if(!price){alert('请填写出售价格');return}
@@ -1677,7 +1725,7 @@ function submitListing(){
   const ticket_type=document.getElementById('f-tickettype').value;
   const note=document.getElementById('f-note').value;
   const deposit=Math.ceil(price*qty*0.5);
-  pendingListing={artist,title:s.title,date,city:s.city,qty,price,orig,status:'live',img:s.img,ticket_type,note,user_id:currentUser.id};
+  pendingListing={artist,title:s.title,date,city:s.city,qty,price,orig,status:'live',img:s.img,ticket_type,note,user_id:currentUser.id,seller_name:realname,seller_idcard:idcard};
   document.getElementById('dep-price').textContent='¥'+price.toLocaleString()+' / 张';
   document.getElementById('dep-qty').textContent=qty+'张';
   document.getElementById('dep-total').textContent='¥'+(price*qty).toLocaleString();

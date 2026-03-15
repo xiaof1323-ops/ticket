@@ -312,7 +312,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
       <div class="data-card">
         <div class="data-card-header">
           <div class="data-card-title"><i class="fa fa-list" style="color:var(--text2);margin-right:6px"></i>已配置演出</div>
-          <button class="btn-sm" onclick="loadShows()"><i class="fa fa-sync"></i> 刷新</button>
+          <div style="display:flex;gap:6px"><button class="btn-sm" onclick="importBuiltinShows()" style="background:rgba(212,168,71,0.1);color:var(--gold);border-color:var(--gold-border)"><i class="fa fa-download"></i> 导入内置数据</button><button class="btn-sm" onclick="loadShows()"><i class="fa fa-sync"></i> 刷新</button></div>
         </div>
         <div style="padding:14px">
           <div class="show-list-grid" id="show-list-grid">
@@ -501,6 +501,36 @@ async function addShow(){
   document.getElementById('ns-poster-preview').style.display='none';
   document.getElementById('ns-hot').checked=false;
   newShowDates=[];renderDateTags();
+  loadShows();
+}
+
+async function importBuiltinShows(){
+  if(!confirm('将从前台内置演出数据导入到数据库，重复的会跳过。确认导入？'))return;
+  // 内置演出数据（与index.html中SHOW_MAP保持一致）
+  const BUILTIN=[
+    {artist:'周杰伦',city:'南宁',title:'嘉年华II世界巡回演唱会 南宁站',label:'嘉年华II 南宁站',type:'concert',venue:'广西体育中心体育场',dates:['2026-04-17','2026-04-18','2026-04-19'],orig_prices:[580,780,1080,1380,1880,2080,2380],hot:true,active:true,img:''},
+    {artist:'周杰伦',city:'杭州',title:'嘉年华II世界巡回演唱会 杭州站',label:'嘉年华II 杭州站',type:'concert',venue:'杭州奥体中心体育场',dates:['2026-04-03','2026-04-04','2026-04-05'],orig_prices:[780,1080,1380,1880,2080,2380],hot:true,active:true,img:''},
+    {artist:'薛之谦',city:'广州',title:'万兽之王巡回演唱会 广州站',label:'万兽之王 广州站',type:'concert',venue:'广州天河体育中心体育场',dates:['2026-03-20','2026-03-21','2026-03-22'],orig_prices:[317,517,717,917,1317,1517,1717],hot:true,active:true,img:''},
+    {artist:'薛之谦',city:'长沙',title:'万兽之王巡回演唱会 长沙站',label:'万兽之王 长沙站',type:'concert',venue:'长沙贺龙体育中心',dates:['2026-04-10','2026-04-11','2026-04-12'],orig_prices:[317,517,717,917,1317,1517,1717],hot:false,active:true,img:''},
+    {artist:'薛之谦',city:'太原',title:'万兽之王巡回演唱会 太原站',label:'万兽之王 太原站',type:'concert',venue:'山西体育中心体育场',dates:['2026-04-24','2026-04-25','2026-04-26'],orig_prices:[317,517,717,917,1317,1517,1717],hot:false,active:true,img:''},
+    {artist:'薛之谦',city:'青岛',title:'万兽之王巡回演唱会 青岛站',label:'万兽之王 青岛站',type:'concert',venue:'青岛市民健身中心体育场',dates:['2026-05-08','2026-05-09','2026-05-10'],orig_prices:[317,517,717,917,1317,1517,1717],hot:false,active:true,img:''},
+    {artist:'谢霆锋',city:'深圳',title:'进化演唱会 深圳站',label:'进化演唱会 深圳站',type:'concert',venue:'深圳大运中心体育场',dates:['2026-03-21','2026-03-22'],orig_prices:[380,580,780,980,1380,1680],hot:true,active:true,img:''},
+    {artist:'谢霆锋',city:'武汉',title:'进化演唱会 武汉站',label:'进化演唱会 武汉站',type:'concert',venue:'武汉体育中心主体育场',dates:['2026-04-11','2026-04-12'],orig_prices:[380,580,780,980,1380,1680],hot:false,active:true,img:''},
+    {artist:'谢霆锋',city:'北京',title:'进化演唱会 北京站',label:'进化演唱会 北京站',type:'concert',venue:'国家体育场-鸟巢',dates:['2026-05-30','2026-05-31'],orig_prices:[380,580,780,980,1380,1680],hot:false,active:true,img:''},
+    {artist:'谢霆锋',city:'成都',title:'进化演唱会 成都站',label:'进化演唱会 成都站',type:'concert',venue:'东安湖体育公园主体育场',dates:['2026-07-10','2026-07-11'],orig_prices:[380,580,780,980,1380,1680],hot:false,active:true,img:''},
+    {artist:'张杰',city:'北京',title:'未·LIVE 开往1982 演唱会 北京站',label:'未·LIVE 开往1982 北京站',type:'concert',venue:'国家体育场-鸟巢',dates:['2026-03-27','2026-03-28','2026-03-29'],orig_prices:[380,480,580,680,880,1280,1680],hot:true,active:true,img:''},
+    {artist:'凤凰传奇',city:'厦门',title:'吉祥如意演唱会 厦门站',label:'吉祥如意演唱会 厦门站',type:'concert',venue:'厦门奥林匹克体育中心',dates:['2026-03-27','2026-03-28','2026-03-29'],orig_prices:[280,380,480,580,680,780],hot:false,active:true,img:''},
+    {artist:'凤凰传奇',city:'郑州',title:'吉祥如意演唱会 郑州站',label:'吉祥如意演唱会 郑州站',type:'concert',venue:'郑州奥林匹克体育中心',dates:['2026-04-10','2026-04-11','2026-04-12'],orig_prices:[280,380,480,580,680,780],hot:false,active:true,img:''},
+    {artist:'凤凰传奇',city:'深圳',title:'吉祥如意演唱会 深圳站',label:'吉祥如意演唱会 深圳站',type:'concert',venue:'深圳大运中心体育场',dates:['2026-04-24','2026-04-25','2026-04-26'],orig_prices:[280,380,480,580,680,780],hot:false,active:true,img:''},
+  ];
+  // 查已有数据，按title去重
+  const{data:existing}=await sb.from('shows').select('title');
+  const existTitles=new Set((existing||[]).map(s=>s.title));
+  const toInsert=BUILTIN.filter(s=>!existTitles.has(s.title)).map(s=>({...s,date:s.dates[0]}));
+  if(!toInsert.length){alert('所有内置演出已存在，无需重复导入');return}
+  const{error}=await sb.from('shows').insert(toInsert);
+  if(error){alert('导入失败：'+error.message);return}
+  alert('✓ 成功导入 '+toInsert.length+' 场演出');
   loadShows();
 }
 
@@ -747,18 +777,125 @@ async function loadUsers(){
         <td><span style="color:var(--gold);font-weight:700">${uListings}</span></td>
         <td>${uOrders}</td>
         <td style="color:var(--text3);font-size:11px;font-family:var(--mono)">${new Date(u.created_at).toLocaleString('zh-CN')}</td>
-        <td><button class="btn-sm danger" onclick="removeUser(${u.id},'${u.name}')" style="background:rgba(220,50,50,0.1);color:#e55;border-color:rgba(220,50,50,0.3);font-size:11px"><i class="fa fa-user-times"></i> 移除</button></td>
+        <td style="white-space:nowrap">
+          <button class="btn-sm" onclick="openUserDetail(${u.id})" style="font-size:11px;margin-bottom:4px;width:100%"><i class="fa fa-eye"></i> 详情</button>
+          <button class="btn-sm danger" onclick="removeUser(${u.id},'${u.name}')" style="background:rgba(220,50,50,0.1);color:#e55;border-color:rgba(220,50,50,0.3);font-size:11px;width:100%"><i class="fa fa-user-times"></i> 移除</button>
+        </td>
       </tr>`;
     }).join('')}</tbody></table>`;
 }
+async function openUserDetail(uid){
+  // 并发查用户信息、上架记录、购票订单、银行卡、实名证件
+  const[{data:u},{data:listings},{data:orders},{data:cards}]=await Promise.all([
+    sb.from('users').select('*').eq('id',uid).single(),
+    sb.from('listings').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('orders').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+    sb.from('bank_cards').select('*').eq('user_id',uid)
+  ]);
+  if(!u){alert('用户不存在');return}
+  const modal=document.getElementById('user-detail-overlay');
+  // 基本信息
+  document.getElementById('ud-name').textContent=u.name;
+  document.getElementById('ud-account').textContent=u.account;
+  document.getElementById('ud-id').textContent='ID: '+u.id;
+  document.getElementById('ud-reg').textContent='注册：'+new Date(u.created_at).toLocaleString('zh-CN');
+  document.getElementById('ud-balance').textContent='¥'+(u.balance||0).toFixed(2);
+  document.getElementById('ud-frozen').textContent='¥'+(u.balance_frozen||0).toFixed(2);
+  // 银行卡
+  const cardEl=document.getElementById('ud-cards');
+  cardEl.innerHTML=cards&&cards.length?cards.map(c=>`<div style="font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--border)"><span style="color:var(--text2)">${c.bank_name}</span> <span style="font-family:var(--mono)">${c.card_no}</span> <span style="color:var(--text3)">${c.holder_name}</span></div>`).join(''):'<span style="color:var(--text3);font-size:12px">未绑定银行卡</span>';
+  // 上架记录
+  const listEl=document.getElementById('ud-listings');
+  listEl.innerHTML=listings&&listings.length?listings.map(l=>{
+    const certBtn=l.cert_url?`<a href="${l.cert_url}" target="_blank" style="color:var(--gold);font-size:11px;margin-left:6px">📋证件</a>`:'';
+    const idInfo=l.seller_name?`<span style="color:var(--text3);font-size:11px"> | ${l.seller_name} ${l.seller_idcard?l.seller_idcard.slice(0,6)+'****'+l.seller_idcard.slice(14):''}</span>`:'';
+    const statusColor={'live':'var(--green)','pending':'var(--gold)','sold':'var(--text3)'}[l.status]||'var(--text2)';
+    return`<div style="padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <strong>${l.artist}</strong> ${l.title||''}
+          <span style="color:${statusColor};margin-left:6px;font-size:11px">[${l.status}]</span>${certBtn}
+        </div>
+        <span style="color:var(--gold);font-weight:700;white-space:nowrap">¥${(l.price||0).toLocaleString()}</span>
+      </div>
+      <div style="color:var(--text3);margin-top:2px">${l.date||''} · ${l.city||''} · ${l.ticket_type||''} · ${l.qty||1}张${idInfo}</div>
+    </div>`;
+  }).join(''):'<span style="color:var(--text3);font-size:12px">暂无上架记录</span>';
+  // 购票订单
+  const orderEl=document.getElementById('ud-orders');
+  orderEl.innerHTML=orders&&orders.length?orders.map(o=>{
+    const statusColor={'已完成':'var(--green)','待审核':'var(--gold)','已取消':'var(--text3)'}[o.status]||'var(--text2)';
+    return`<div style="padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <strong>${o.artist||''}</strong> ${o.title||''}
+          <span style="color:${statusColor};margin-left:6px;font-size:11px">[${o.status||''}]</span>
+        </div>
+        <span style="color:var(--gold);font-weight:700;white-space:nowrap">¥${(o.total||0).toLocaleString()}</span>
+      </div>
+      <div style="color:var(--text3);margin-top:2px">${o.date||''} · ${o.city||''} · ${o.qty||1}张 · 订单#TJ${o.id}</div>
+    </div>`;
+  }).join(''):'<span style="color:var(--text3);font-size:12px">暂无购票记录</span>';
+  modal.style.display='block';
+}
+function closeUserDetail(){
+  document.getElementById('user-detail-overlay').style.display='none';
+}
 async function removeUser(id,name){
-  if(!confirm('确认移除用户「'+name+'」？\n此操作将删除该用户账号（不影响订单记录）'))return;
+  if(!confirm('确认移除用户「'+name+'」？\n将同时清除该用户的上架记录和银行卡信息'))return;
+  // 先清除关联数据（外键约束）
+  await sb.from('bank_cards').delete().eq('user_id',id);
+  await sb.from('listings').delete().eq('user_id',id);
+  // 再删除用户
   const{error}=await sb.from('users').delete().eq('id',id);
-  if(error){alert('移除失败：'+error.message);return}
-  alert('已移除用户 '+name);
+  if(error){alert('移除失败：'+error.message+'\n\n如仍失败，请在Supabase执行：\nALTER TABLE listings DROP CONSTRAINT listings_user_id_fkey;');return}
+  alert('已成功移除用户 '+name);
   loadUsers();
 }
 </script>
+<!-- 用户详情弹窗 -->
+<div id="user-detail-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;overflow-y:auto;padding:16px">
+  <div style="max-width:620px;margin:0 auto;background:var(--surface2);border-radius:var(--r-lg);border:0.5px solid var(--border);overflow:hidden">
+    <!-- 头部 -->
+    <div style="background:var(--surface3);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:0.5px solid var(--border)">
+      <div>
+        <div style="font-size:16px;font-weight:700" id="ud-name"></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px" id="ud-account"></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px"><span id="ud-id"></span> · <span id="ud-reg"></span></div>
+      </div>
+      <button onclick="closeUserDetail()" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <!-- 余额 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:rgba(212,168,71,0.08);border:0.5px solid var(--gold-border);border-radius:var(--r-md);padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">可用余额</div>
+          <div style="font-size:20px;font-weight:700;color:var(--gold)" id="ud-balance"></div>
+        </div>
+        <div style="background:var(--surface3);border:0.5px solid var(--border);border-radius:var(--r-md);padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">冻结中</div>
+          <div style="font-size:20px;font-weight:700;color:var(--text2)" id="ud-frozen"></div>
+        </div>
+      </div>
+      <!-- 银行卡 -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fa fa-credit-card" style="color:var(--gold)"></i> 绑定银行卡</div>
+        <div id="ud-cards"></div>
+      </div>
+      <!-- 上架记录 -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fa fa-ticket-alt" style="color:var(--gold)"></i> 上架出票记录（含实名信息）</div>
+        <div id="ud-listings" style="max-height:220px;overflow-y:auto"></div>
+      </div>
+      <!-- 购票订单 -->
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fa fa-shopping-bag" style="color:var(--gold)"></i> 购票记录</div>
+        <div id="ud-orders" style="max-height:220px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 编辑演出弹窗 -->
 <div class="overlay" id="edit-show-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;overflow-y:auto;padding:20px">
   <div style="max-width:560px;margin:0 auto;background:var(--surface2);border-radius:var(--r-lg);padding:20px;border:0.5px solid var(--border)">
